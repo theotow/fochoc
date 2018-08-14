@@ -2,6 +2,7 @@ GOCMD=go
 GOBUILD=$(GOCMD) build
 GOCLEAN=$(GOCMD) clean
 GOTEST=$(GOCMD) test
+GORUN=$(GOCMD) run
 GOGET=$(GOCMD) get
 BINARY_NAME=fochoc
 BINARY_WIN=$(BINARY_NAME)_win
@@ -22,3 +23,5 @@ clean:
 		rm -f $(BINARY_LINUX)
 dep:
 		dep ensure
+run:
+		$(GORUN) main.go config.go kraken.go poloniex.go binance.go

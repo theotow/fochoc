@@ -11,3 +11,4 @@
 ## Supported Exchanges
 - binance
 - kraken
+- poloniex

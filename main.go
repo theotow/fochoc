@@ -20,11 +20,13 @@ const AppVersion = "0.0.1"
 var Providers = []Provider{
 	Provider{id: "binance", factory: NewBinance()},
 	Provider{id: "kraken", factory: NewKraken()},
+	Provider{id: "poloniex", factory: NewPoloniex()},
 }
 
 var ActiveProviders = []string{
 	"binance",
 	"kraken",
+	"poloniex",
 }
 
 type ProviderInterface interface {
