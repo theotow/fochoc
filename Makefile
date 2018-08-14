@@ -8,7 +8,7 @@ BINARY_WIN=$(BINARY_NAME)_win
 BINARY_MAC=$(BINARY_NAME)_mac
 BINARY_LINUX=$(BINARY_NAME)_linux
 
-all: test build
+all: dep test build
 build:
 		env GOOS=windows GOARCH=amd64 $(GOBUILD) -o $(BINARY_WIN) -v
 		env GOOS=darwin GOARCH=amd64 $(GOBUILD) -o $(BINARY_MAC) -v
@@ -20,3 +20,5 @@ clean:
 		rm -f $(BINARY_WIN)
 		rm -f $(BINARY_MAC)
 		rm -f $(BINARY_LINUX)
+dep:
+		dep ensure
