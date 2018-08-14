@@ -1,5 +1,9 @@
 language: go
 
+before_install:
+  # Setup dependency management tool
+  - curl https://raw.githubusercontent.com/golang/dep/master/install.sh | sh
+
 go:
   - "1.8"
   - "1.10.x"
