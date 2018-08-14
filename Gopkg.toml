@@ -34,6 +34,10 @@
   name = "github.com/beldur/kraken-go-api-client"
 
 [[constraint]]
+  branch = "master"
+  name = "github.com/jyap808/go-poloniex"
+
+[[constraint]]
   name = "github.com/levigross/grequests"
   version = "0.10.0"
 
