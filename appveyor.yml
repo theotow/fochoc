@@ -34,4 +34,4 @@ deploy: false
 
 test_script:
   - dep ensure
-  - go test github.com\theotow\fochoc
+  - go test -v github.com\theotow\fochoc
