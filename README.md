@@ -12,3 +12,14 @@
 - binance
 - kraken
 - poloniex
+
+## Supported Coins / Tokens
+- https://api.coinmarketcap.com/v2/listings/
+
+## Planned Features
+
+- [ ] Improve error reporting
+- [ ] Add ERC-20 token support
+- [ ] Add Bittrex exchange
+- [ ] Improve test coverage
+
