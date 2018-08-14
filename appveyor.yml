@@ -8,6 +8,7 @@ clone_folder: c:\gopath\src\github.com\theotow\fochoc
 
 environment:
   GOPATH: c:\gopath
+  GOBIN:  c:\gopath\bin
   DEPTESTBYPASS501: 1
   GOVERSION: 1.9
 
