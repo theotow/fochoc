@@ -1,9 +1,8 @@
-package binance
+package main
 
 import (
 	"context"
 	"errors"
-	"go-crypto/config"
 	"strconv"
 
 	bin "github.com/adshao/go-binance"
@@ -12,29 +11,29 @@ import (
 type binance struct {
 	ResultRaw []bin.Balance
 }
-type methods struct{}
+type methodsBinance struct{}
 
-func Get(c config.ConfigInterface) *binance {
+func initBinance(c ConfigInterface) *binance {
 	api := bin.NewClient(c.GetKey("BINANCE_KEY"), c.GetKey("BINANCE_SECRET"))
 	result, err := api.NewGetAccountService().Do(context.Background())
 
 	if err != nil {
 		panic(err)
 	}
-	result.Balances = append(result.Balances, bin.Balance{Free: "10.00", Locked: "0.00", Asset: "ETH"})
+	// result.Balances = append(result.Balances, bin.Balance{Free: "10.00", Locked: "0.00", Asset: "ETH"})
 	return &binance{ResultRaw: result.Balances}
 }
 
-func (m *methods) Get(c config.ConfigInterface) config.ProviderInterface {
-	return Get(c)
+func (m *methodsBinance) Get(c ConfigInterface) ConfigProviderInterface {
+	return initBinance(c)
 }
 
-func (m *methods) ConfigKeys() []string {
+func (m *methodsBinance) ConfigKeys() []string {
 	return []string{"BINANCE_KEY", "BINANCE_SECRET"}
 }
 
-func New() *methods {
-	return &methods{}
+func NewBinance() *methodsBinance {
+	return &methodsBinance{}
 }
 
 func (b *binance) GetCurrencyValue(name string) float64 {

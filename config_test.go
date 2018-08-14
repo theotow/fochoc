@@ -1,4 +1,4 @@
-package config
+package main
 
 import (
 	"errors"
@@ -10,7 +10,7 @@ import (
 	. "github.com/smartystreets/goconvey/convey"
 )
 
-func TestRun(t *testing.T) {
+func TestConfig(t *testing.T) {
 	Convey("should get file url", t, func() {
 		res := getFileString()
 		if len(res) == 0 {

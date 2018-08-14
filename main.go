@@ -10,10 +10,6 @@ import (
 	survey "gopkg.in/AlecAivazis/survey.v1"
 	cli "gopkg.in/urfave/cli.v1"
 
-	binanceImport "go-crypto/binance"
-	configImport "go-crypto/config"
-	krakenImport "go-crypto/kraken"
-
 	"github.com/levigross/grequests"
 )
 
@@ -22,19 +18,22 @@ const AppName = "fochoc"
 const AppVersion = "0.0.1"
 
 var Providers = []Provider{
-	Provider{id: "binance", factory: binanceImport.New()},
-	Provider{id: "kraken", factory: krakenImport.New()},
+	Provider{id: "binance", factory: NewBinance()},
+	Provider{id: "kraken", factory: NewKraken()},
 }
 
-var ActiveProviders = []string{"binance", "kraken"}
+var ActiveProviders = []string{
+	"binance",
+	"kraken",
+}
 
 type ProviderInterface interface {
-	Get(c configImport.ConfigInterface) configImport.ProviderInterface
+	Get(c ConfigInterface) ConfigProviderInterface
 	ConfigKeys() []string
 }
 
 type Provider struct {
-	instance configImport.ProviderInterface
+	instance ConfigProviderInterface
 	factory  ProviderInterface
 	id       string
 }
@@ -175,7 +174,7 @@ func (q *questions) Logic() {
 			if q.getKeySafe("exchange") == exchange {
 				configKeys := getConfigKeysOfProviderById(exchange)
 				q.ExchangeCreds(configKeys)
-				config := configImport.NewFileConfig()
+				config := NewFileConfig()
 				configMap := config.Read()
 				// write to config (merge)
 				for _, name := range configKeys {
@@ -191,7 +190,7 @@ func (q *questions) Logic() {
 		if q.getKeySafe("reset") == "" {
 			q.AreYouSure()
 		} else if q.getKeySafe("reset") == "yes" {
-			config := configImport.NewFileConfig()
+			config := NewFileConfig()
 			data := make(map[string]string)
 			config.Write(data)
 			fmt.Println("Done!")
@@ -230,7 +229,7 @@ func main() {
 
 func showOverview() {
 	coins := getCoins()
-	config := configImport.NewFileConfig()
+	config := NewFileConfig()
 	providers := initProviders(ActiveProviders, config)
 	res := getAllBalances(providers, coins)
 	usdSum, btcSum := getAggSum(res)
@@ -305,7 +304,7 @@ func getCoinsOfProvider(p Provider, coinMap map[string]Coin) []Balance {
 	return output
 }
 
-func providerHasValidConf(p *Provider, c configImport.ConfigInterface) bool {
+func providerHasValidConf(p *Provider, c ConfigInterface) bool {
 	keys := p.factory.ConfigKeys()
 	var isValid bool = true
 	for _, key := range keys {
@@ -316,7 +315,7 @@ func providerHasValidConf(p *Provider, c configImport.ConfigInterface) bool {
 	return isValid
 }
 
-func initProviders(neededProviders []string, config configImport.ConfigInterface) []Provider {
+func initProviders(neededProviders []string, config ConfigInterface) []Provider {
 	var activeProvider []Provider
 	neededProvidersIdMap := toMap(neededProviders)
 	for _, provider := range Providers {

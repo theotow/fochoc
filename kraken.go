@@ -1,7 +1,6 @@
-package kraken
+package main
 
 import (
-	"go-crypto/config"
 	"reflect"
 
 	"github.com/beldur/kraken-go-api-client"
@@ -20,9 +19,9 @@ var mapping = map[string]string{
 	"EUR":  "ZEUR",
 }
 
-type methods struct{}
+type methodsKraken struct{}
 
-func Get(c config.ConfigInterface) *kraken {
+func initKraken(c ConfigInterface) *kraken {
 	api := krakenapi.New(c.GetKey("KRAKEN_KEY"), c.GetKey("KRAKEN_SECRET"))
 	result, err := api.Balance()
 
@@ -33,16 +32,16 @@ func Get(c config.ConfigInterface) *kraken {
 	return &kraken{ResultRaw: result}
 }
 
-func (m *methods) Get(c config.ConfigInterface) config.ProviderInterface {
-	return Get(c)
+func (m *methodsKraken) Get(c ConfigInterface) ConfigProviderInterface {
+	return initKraken(c)
 }
 
-func (m *methods) ConfigKeys() []string {
+func (m *methodsKraken) ConfigKeys() []string {
 	return []string{"KRAKEN_KEY", "KRAKEN_SECRET"}
 }
 
-func New() *methods {
-	return &methods{}
+func NewKraken() *methodsKraken {
+	return &methodsKraken{}
 }
 
 func (k *kraken) GetCurrencyValue(name string) float64 {

@@ -1,4 +1,4 @@
-package config
+package main
 
 import (
 	"encoding/json"
@@ -55,11 +55,11 @@ func (c *FileConfig) Read() map[string]string {
 }
 
 type ConfigInterface interface {
-	GetKey(string) string
+	GetKey(name string) string
 	Initialised() bool
 }
 
-type ProviderInterface interface {
+type ConfigProviderInterface interface {
 	GetCurrencyValue(name string) float64
 	GetAll(keys []string) map[string]float64
 }
