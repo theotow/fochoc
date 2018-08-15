@@ -12,6 +12,7 @@
 - binance
 - kraken
 - poloniex
+- bittrex
 
 ## Supported Coins / Tokens
 - https://api.coinmarketcap.com/v2/listings/
@@ -20,6 +21,6 @@
 
 - [ ] Improve error reporting
 - [ ] Add ERC-20 token support
-- [ ] Add Bittrex exchange
+- [x] Add Bittrex exchange
 - [ ] Improve test coverage
 
