@@ -6,6 +6,7 @@ os:
 
 before_install:
   # Setup dependency management tool
+  - mkdir $GOBIN
   - curl https://raw.githubusercontent.com/golang/dep/master/install.sh | sh
 
 go:
