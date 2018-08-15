@@ -1,6 +1,7 @@
 package main
 
 import (
+	"github.com/shopspring/decimal"
 	bit "github.com/toorop/go-bittrex"
 )
 
@@ -16,16 +17,6 @@ func initBittrex(c ConfigInterface) *bittrex {
 	if err != nil {
 		panic(err)
 	}
-	// val, _ := decimal.NewFromString("1.00")
-	// result = append(result, bit.Balance{
-	// 	Currency:      "ETH",
-	// 	Balance:       val,
-	// 	Available:     val,
-	// 	Pending:       val,
-	// 	CryptoAddress: "test",
-	// 	Requested:     true,
-	// 	Uuid:          "string",
-	// })
 	return &bittrex{ResultRaw: result}
 }
 
@@ -57,4 +48,17 @@ func (b *bittrex) GetAll(keys []string) map[string]float64 {
 		m[key] = b.GetCurrencyValue(key)
 	}
 	return m
+}
+
+func (b *bittrex) AddTestBalance(name string, value float64) {
+	val := decimal.NewFromFloat(value)
+	b.ResultRaw = append(b.ResultRaw, bit.Balance{
+		Currency:      name,
+		Balance:       val,
+		Available:     val,
+		Pending:       val,
+		CryptoAddress: "test",
+		Requested:     true,
+		Uuid:          "string",
+	})
 }

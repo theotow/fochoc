@@ -24,11 +24,9 @@ type methodsKraken struct{}
 func initKraken(c ConfigInterface) *kraken {
 	api := krakenapi.New(c.GetKey("KRAKEN_KEY"), c.GetKey("KRAKEN_SECRET"))
 	result, err := api.Balance()
-
 	if err != nil {
 		panic(err)
 	}
-	// result.XETH = 10.00
 	return &kraken{ResultRaw: result}
 }
 
@@ -67,4 +65,11 @@ func (k *kraken) GetAll(keys []string) map[string]float64 {
 		m[key] = k.GetCurrencyValue(key)
 	}
 	return m
+}
+
+func (k *kraken) AddTestBalance(name string, value float64) {
+	v := reflect.ValueOf(k.ResultRaw).Elem().FieldByName(k.getLocalKey(name))
+	if v.IsValid() {
+		v.SetFloat(value)
+	}
 }

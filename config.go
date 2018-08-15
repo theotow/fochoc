@@ -62,6 +62,7 @@ type ConfigInterface interface {
 type ConfigProviderInterface interface {
 	GetCurrencyValue(name string) float64
 	GetAll(keys []string) map[string]float64
+	AddTestBalance(name string, value float64)
 }
 
 // TODO: put in main.go

@@ -13,8 +13,10 @@ func TestBittrex(t *testing.T) {
 	Convey("should not crash", t, func() {
 		biInstance.Get(&biConfig)
 	})
-	SkipConvey("should be able to get key", t, func() {
-
+	Convey("should be able to get key", t, func() {
+		i := biInstance.Get(&biConfig)
+		i.AddTestBalance("ETH", 1.11)
+		So(i.GetCurrencyValue("ETH"), ShouldEqual, 1.11)
 	})
 	SkipConvey("should get all", t, func() {
 

@@ -3,6 +3,7 @@ package main
 import (
 	"context"
 	"errors"
+	"fmt"
 	"strconv"
 
 	bin "github.com/adshao/go-binance"
@@ -20,7 +21,6 @@ func initBinance(c ConfigInterface) *binance {
 	if err != nil {
 		panic(err)
 	}
-	// result.Balances = append(result.Balances, bin.Balance{Free: "10.00", Locked: "0.00", Asset: "ETH"})
 	return &binance{ResultRaw: result.Balances}
 }
 
@@ -56,4 +56,8 @@ func (b *binance) GetAll(keys []string) map[string]float64 {
 		m[key] = b.GetCurrencyValue(key)
 	}
 	return m
+}
+
+func (b *binance) AddTestBalance(name string, value float64) {
+	b.ResultRaw = append(b.ResultRaw, bin.Balance{Free: fmt.Sprintf("%f", value), Locked: "0.00", Asset: name})
 }

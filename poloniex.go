@@ -2,6 +2,7 @@ package main
 
 import (
 	"errors"
+	"fmt"
 	"strconv"
 
 	polo "github.com/jyap808/go-poloniex"
@@ -19,11 +20,6 @@ func initPoloniex(c ConfigInterface) *poloniex {
 	if err != nil {
 		panic(err)
 	}
-	// result["LTC"] = polo.Balance{
-	// 	Available: "5.015",
-	// 	BtcValue:  "0.078",
-	// 	OnOrders:  "0.078",
-	// }
 	return &poloniex{ResultRaw: result}
 }
 
@@ -59,4 +55,12 @@ func (b *poloniex) GetAll(keys []string) map[string]float64 {
 		m[key] = b.GetCurrencyValue(key)
 	}
 	return m
+}
+
+func (b *poloniex) AddTestBalance(name string, value float64) {
+	b.ResultRaw[name] = polo.Balance{
+		Available: fmt.Sprintf("%f", value),
+		BtcValue:  "0.000",
+		OnOrders:  "0.000",
+	}
 }
