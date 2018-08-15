@@ -26,7 +26,7 @@
 ## Planned Features
 
 - [ ] Improve error reporting
-- [ ] Add ERC-20 token support
+- [x] Add ERC-20 token support
 - [x] Add Bittrex exchange
 - [ ] Improve test coverage
 
