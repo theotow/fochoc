@@ -182,7 +182,7 @@ func (q *questions) Logic() {
 				configMap := config.Read()
 				// write to config (merge)
 				for _, name := range configKeys {
-					configMap[name] = fmt.Sprint(q.getKeySafe(name))
+					configMap.Keys[name] = fmt.Sprint(q.getKeySafe(name))
 				}
 				config.Write(configMap)
 				fmt.Println("Done!")
@@ -195,8 +195,7 @@ func (q *questions) Logic() {
 			q.AreYouSure()
 		} else if q.getKeySafe("reset") == "yes" {
 			config := NewFileConfig()
-			data := make(map[string]string)
-			config.Write(data)
+			config.Write(config.GetEmptyConfig())
 			fmt.Println("Done!")
 		}
 		return
