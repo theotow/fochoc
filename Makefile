@@ -24,4 +24,4 @@ clean:
 dep:
 		dep ensure
 run:
-		$(GORUN) main.go config.go kraken.go poloniex.go binance.go bittrex.go
+		$(GORUN) main.go config.go kraken.go poloniex.go binance.go bittrex.go scraper.go exchange.go erc20.go

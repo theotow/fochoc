@@ -29,8 +29,8 @@ func GetER20Tokens(address string) map[string]float64 {
 
 	c.OnHTML("#balancelist a", func(e *colly.HTMLElement) {
 		html, _ := e.DOM.Html()
-		result := getParams(`\"\>(?P<Name>[A-Z]{0,3})\<\/i\>\<br\/\>(?P<Value>[0-9,]{0,10})\s`, html)
-		if len(result) == 2 {
+		result := getParams(`\"\>(?P<Name>[A-Z]{0,3})\<\/i\>(.*)\<br\/\>(?P<Value>[0-9,]{0,10})\s[A-Z]{3}`, html)
+		if len(result) == 3 {
 			output[result["Name"]], _ = strconv.ParseFloat(strings.Replace(result["Value"], ",", ".", -1), 64)
 		}
 	})

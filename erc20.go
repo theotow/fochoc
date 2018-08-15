@@ -1,5 +1,6 @@
 package main
 
+
 type erc20 struct {
 	ResultRaw []BalanceSimple
 }

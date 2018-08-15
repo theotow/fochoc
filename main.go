@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"io/ioutil"
 	"os"
+	"strconv"
 
 	"github.com/olekukonko/tablewriter"
 	survey "gopkg.in/AlecAivazis/survey.v1"
@@ -18,13 +19,22 @@ const AppName = "fochoc"
 const AppVersion = "0.0.1"
 
 var Providers = []Provider{
-	Provider{id: "binance", factory: NewBinance()},
-	Provider{id: "kraken", factory: NewKraken()},
-	Provider{id: "poloniex", factory: NewPoloniex()},
-	Provider{id: "bittrex", factory: NewBittrex()},
+	{id: "binance", factory: NewBinance()},
+	{id: "kraken", factory: NewKraken()},
+	{id: "poloniex", factory: NewPoloniex()},
+	{id: "bittrex", factory: NewBittrex()},
+	{id: "erc20", factory: NewEcr20()},
 }
 
 var ActiveProviders = []string{
+	"binance",
+	"kraken",
+	"poloniex",
+	"bittrex",
+	"erc20",
+}
+
+var ActiveExchangeProviders = []string{
 	"binance",
 	"kraken",
 	"poloniex",
@@ -134,7 +144,7 @@ func (q *questions) Main() {
 			Validate: survey.Required,
 			Prompt: &survey.Select{
 				Message: "What you want to do:",
-				Options: []string{"Add Exchange", "Reset Config"},
+				Options: []string{"Add Exchange", "Add ERC20 Adress", "Reset Config"},
 				Default: "Add Exchange",
 			},
 		},
@@ -149,8 +159,8 @@ func (q *questions) Exchange() {
 			Validate: survey.Required,
 			Prompt: &survey.Select{
 				Message: "Which:",
-				Options: ActiveProviders,
-				Default: ActiveProviders[0],
+				Options: ActiveExchangeProviders,
+				Default: ActiveExchangeProviders[0],
 			},
 		},
 	}, &q.answers)
@@ -166,6 +176,20 @@ func (q *questions) ExchangeCreds(settings []string) {
 		})
 	}
 	survey.Ask(questions, &q.answers)
+}
+
+func (q *questions) AddErc20() {
+	survey.Ask([]*survey.Question{
+		{
+			Name:     "address",
+			Prompt:   &survey.Input{Message: "Address"},
+			Validate: survey.Required,
+		},
+		{
+			Name:   "comment",
+			Prompt: &survey.Input{Message: "Comment"},
+		},
+	}, &q.answers)
 }
 
 func (q *questions) AreYouSure() {
@@ -202,7 +226,7 @@ func getConfigKeysOfProviderById(id string) []string {
 func (q *questions) Logic() {
 	if q.getKeySafe("what") == "Add Exchange" {
 		q.Exchange()
-		for _, exchange := range ActiveProviders {
+		for _, exchange := range ActiveExchangeProviders {
 			if q.getKeySafe("exchange") == exchange {
 				configKeys := getConfigKeysOfProviderById(exchange)
 				q.ExchangeCreds(configKeys)
@@ -216,6 +240,18 @@ func (q *questions) Logic() {
 				fmt.Println("Done!")
 			}
 		}
+		return
+	}
+	if q.getKeySafe("what") == "Add ERC20 Adress" {
+		q.AddErc20()
+		config := NewFileConfig()
+		configMap := config.Read()
+		configMap.Erc20Tokens = append(configMap.Erc20Tokens, Token{
+			Address: fmt.Sprint(q.getKeySafe("address")),
+			Comment: fmt.Sprint(q.getKeySafe("comment")),
+		})
+		config.Write(configMap)
+		fmt.Println("Done!")
 		return
 	}
 	if q.getKeySafe("what") == "Reset Config" {
@@ -259,7 +295,7 @@ func main() {
 }
 
 func showOverview() {
-	coins := getCoins()
+	coins := getCoins(1, 100, make(map[string]Coin))
 	config := NewFileConfig()
 	providers := initProviders(ActiveProviders, config)
 	res := getAllBalances(providers, coins)
@@ -342,8 +378,8 @@ func initProviders(neededProviders []string, config ConfigInterface) []Provider 
 	return activeProvider
 }
 
-func getCoins() map[string]Coin {
-	resp, err := grequests.Get(CoinList, nil)
+func getCoins(skip int, limit int, output map[string]Coin) map[string]Coin {
+	resp, err := grequests.Get(CoinList+"?sort=id&start="+strconv.Itoa(skip)+"&limit="+strconv.Itoa(limit), nil)
 	if err != nil {
 		panic(errors.New("request failed"))
 	}
@@ -352,7 +388,6 @@ func getCoins() map[string]Coin {
 	if err != nil {
 		panic(errors.New("request decode failed"))
 	}
-	output := make(map[string]Coin)
 	for _, coin := range coinRes.Data {
 		output[coin.Symbol] = Coin{
 			Id:       coin.Id,
@@ -362,6 +397,9 @@ func getCoins() map[string]Coin {
 			BtcPrice: coin.Quote["BTC"]["price"], // TODO: find safer way
 			UsdPrice: coin.Quote["USD"]["price"], // TODO: find safer way
 		}
+	}
+	if len(coinRes.Data) == 100 {
+		return getCoins(skip+limit, limit, output)
 	}
 	return output
 }
