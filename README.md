@@ -17,6 +17,12 @@
 ## Supported Coins / Tokens
 - https://api.coinmarketcap.com/v2/listings/
 
+## Platform Support
+
+- Mac
+- Windows
+- Linux
+
 ## Planned Features
 
 - [ ] Improve error reporting
