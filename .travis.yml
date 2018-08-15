@@ -6,7 +6,7 @@ os:
 
 before_install:
   # Setup dependency management tool
-  - if [[ "$TRAVIS_OS_NAME" == "osx" ]]; then mkdir $GOBIN ; fi
+  - if [[ "$TRAVIS_OS_NAME" == "osx" ]]; then mkdir "$GOBIN" ; fi
   - curl https://raw.githubusercontent.com/golang/dep/master/install.sh | sh
 
 go:
