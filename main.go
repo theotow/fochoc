@@ -21,12 +21,14 @@ var Providers = []Provider{
 	Provider{id: "binance", factory: NewBinance()},
 	Provider{id: "kraken", factory: NewKraken()},
 	Provider{id: "poloniex", factory: NewPoloniex()},
+	Provider{id: "bittrex", factory: NewBittrex()},
 }
 
 var ActiveProviders = []string{
 	"binance",
 	"kraken",
 	"poloniex",
+	"bittrex",
 }
 
 type ProviderInterface interface {

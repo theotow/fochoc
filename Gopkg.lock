@@ -114,6 +114,14 @@
   revision = "d4647c9c7a84d847478d890b816b7d8b62b0b279"
 
 [[projects]]
+  digest = "1:81e02c4edb639c80559c0650f9401d3e2dcc3256d1fa215382bb7c83c1db9126"
+  name = "github.com/shopspring/decimal"
+  packages = ["."]
+  pruneopts = "UT"
+  revision = "cd690d0c9e2447b1ef2a129a6b7b49077da89b8e"
+  version = "1.1.0"
+
+[[projects]]
   digest = "1:cc1c574c9cb5e99b123888c12b828e2d19224ab6c2244bda34647f230bf33243"
   name = "github.com/smartystreets/assertions"
   packages = [
@@ -136,6 +144,22 @@
   pruneopts = "UT"
   revision = "9e8dc3f972df6c8fcc0375ef492c24d0bb204857"
   version = "1.6.3"
+
+[[projects]]
+  branch = "master"
+  digest = "1:d51bf25874115cb888cf614aa2d248ff18fca48c2daf4c1dcc44a006402e7651"
+  name = "github.com/thebotguys/signalr"
+  packages = ["."]
+  pruneopts = "UT"
+  revision = "58078e12c98f4d4feb9ad2f992fde4db192de7a0"
+
+[[projects]]
+  branch = "master"
+  digest = "1:bb03bf34065277b41db66365f31b0019083d5df23e46ac7bca3895358fc8fca9"
+  name = "github.com/toorop/go-bittrex"
+  packages = ["."]
+  pruneopts = "UT"
+  revision = "7dfe1b321c3fca935c2d81b9e27e81edd6655ec9"
 
 [[projects]]
   branch = "master"
@@ -208,7 +232,9 @@
     "github.com/jyap808/go-poloniex",
     "github.com/levigross/grequests",
     "github.com/olekukonko/tablewriter",
+    "github.com/shopspring/decimal",
     "github.com/smartystreets/goconvey/convey",
+    "github.com/toorop/go-bittrex",
     "gopkg.in/AlecAivazis/survey.v1",
     "gopkg.in/urfave/cli.v1",
   ]
