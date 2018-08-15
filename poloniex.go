@@ -19,11 +19,11 @@ func initPoloniex(c ConfigInterface) *poloniex {
 	if err != nil {
 		panic(err)
 	}
-	result["LTC"] = polo.Balance{
-		Available: "5.015",
-		BtcValue:  "0.078",
-		OnOrders:  "0.078",
-	}
+	// result["LTC"] = polo.Balance{
+	// 	Available: "5.015",
+	// 	BtcValue:  "0.078",
+	// 	OnOrders:  "0.078",
+	// }
 	return &poloniex{ResultRaw: result}
 }
 
