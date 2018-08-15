@@ -10,12 +10,34 @@ import (
 )
 
 // TODO: put in main.go
-const FileName = ".crypto.json"
+const FileName = ".fochocconfig.json"
 const FileMode = 0700
 
 type EnvConfig struct{}
 type FileConfig struct {
-	config map[string]string
+	config ConfigFileStruct
+}
+
+type Token struct {
+	Comment string
+	Address string
+}
+
+type ConfigFileStruct struct {
+	Keys        map[string]string `json:"keys"`
+	Erc20Tokens []Token           `json:"erc20Tokens"`
+}
+
+type ConfigInterface interface {
+	GetKey(name string) string
+	GetTokens() []Token
+	Initialised() bool
+}
+
+type ConfigProviderInterface interface {
+	GetCurrencyValue(name string) float64
+	GetAll(keys []string) []BalanceSimple
+	AddTestBalance(name string, value float64)
 }
 
 func NewEnvConfig() *EnvConfig {
@@ -35,34 +57,37 @@ func (c *EnvConfig) Initialised() bool {
 	return true
 }
 
+func (c *EnvConfig) GetTokens() []Token {
+	return []Token{
+		{Address: "0xf27d22d64e625c2a34e31369d9b88828146df52b", Comment: "comment"},
+	}
+}
+
 func (c *FileConfig) GetKey(name string) string {
-	if val, ok := c.config[name]; ok {
+	if val, ok := c.config.Keys[name]; ok {
 		return val
 	}
 	return ""
 }
 
 func (c *FileConfig) Initialised() bool {
-	return len(c.config) > 0
+	return true
 }
 
-func (c *FileConfig) Write(data map[string]string) {
+func (c *FileConfig) Write(data ConfigFileStruct) {
 	writeFile(getFileString(), data)
 }
 
-func (c *FileConfig) Read() map[string]string {
+func (c *FileConfig) Read() ConfigFileStruct {
 	return c.config
 }
 
-type ConfigInterface interface {
-	GetKey(name string) string
-	Initialised() bool
+func (c *FileConfig) GetEmptyConfig() ConfigFileStruct {
+	return ConfigFileStruct{}
 }
 
-type ConfigProviderInterface interface {
-	GetCurrencyValue(name string) float64
-	GetAll(keys []string) map[string]float64
-	AddTestBalance(name string, value float64)
+func (c *FileConfig) GetTokens() []Token {
+	return c.config.Erc20Tokens
 }
 
 // TODO: put in main.go
@@ -80,7 +105,7 @@ func check(err error, msg string) {
 	}
 }
 
-func readFile(path string) map[string]string {
+func readFile(path string) ConfigFileStruct {
 	if _, err := os.Stat(path); os.IsNotExist(err) {
 		f, _ := os.Create(path)
 		if f != nil {
@@ -89,15 +114,15 @@ func readFile(path string) map[string]string {
 	}
 	fileData, err := ioutil.ReadFile(path)
 	check(err, "cannot open file #{path}"+path)
-	jsonMap := make(map[string]string)
-	err = json.Unmarshal(fileData, &jsonMap)
+	res := ConfigFileStruct{}
+	err = json.Unmarshal(fileData, &res)
 	if err != nil {
-		return make(map[string]string)
+		return ConfigFileStruct{} // empty
 	}
-	return jsonMap
+	return res
 }
 
-func writeFile(path string, data map[string]string) {
+func writeFile(path string, data ConfigFileStruct) {
 	dataBytes, err := json.Marshal(&data)
 	check(err, "cannot marshal")
 	ioutil.WriteFile(path, dataBytes, FileMode)

@@ -10,6 +10,7 @@ import (
 )
 
 type binance struct {
+	Exchange
 	ResultRaw []bin.Balance
 }
 type methodsBinance struct{}
@@ -48,14 +49,6 @@ func (b *binance) GetCurrencyValue(name string) float64 {
 		}
 	}
 	return 0.00
-}
-
-func (b *binance) GetAll(keys []string) map[string]float64 {
-	m := make(map[string]float64)
-	for _, key := range keys {
-		m[key] = b.GetCurrencyValue(key)
-	}
-	return m
 }
 
 func (b *binance) AddTestBalance(name string, value float64) {

@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"io/ioutil"
 	"os"
+	"strconv"
 
 	"github.com/olekukonko/tablewriter"
 	survey "gopkg.in/AlecAivazis/survey.v1"
@@ -13,18 +14,27 @@ import (
 	"github.com/levigross/grequests"
 )
 
-const CoinList = "https://api.coinmarketcap.com/v2/ticker/?convert=BTC"
+const CoinList = "https://api.coinmarketcap.com/v2/ticker/"
 const AppName = "fochoc"
 const AppVersion = "0.0.1"
 
 var Providers = []Provider{
-	Provider{id: "binance", factory: NewBinance()},
-	Provider{id: "kraken", factory: NewKraken()},
-	Provider{id: "poloniex", factory: NewPoloniex()},
-	Provider{id: "bittrex", factory: NewBittrex()},
+	{id: "binance", factory: NewBinance()},
+	{id: "kraken", factory: NewKraken()},
+	{id: "poloniex", factory: NewPoloniex()},
+	{id: "bittrex", factory: NewBittrex()},
+	{id: "erc20", factory: NewEcr20()},
 }
 
 var ActiveProviders = []string{
+	"binance",
+	"kraken",
+	"poloniex",
+	"bittrex",
+	"erc20",
+}
+
+var ActiveExchangeProviders = []string{
 	"binance",
 	"kraken",
 	"poloniex",
@@ -40,6 +50,27 @@ type Provider struct {
 	instance ConfigProviderInterface
 	factory  ProviderInterface
 	id       string
+}
+
+func (p *Provider) isValid(c ConfigInterface) bool {
+	keys := p.factory.ConfigKeys()
+	var isValid = true
+	for _, key := range keys {
+		if c.GetKey(key) == "" {
+			isValid = false
+		}
+	}
+	return isValid
+}
+func (p *Provider) getCoinsOfProvider(coinMap map[string]Coin) []Balance {
+	res := p.instance.GetAll(toArray(coinMap))
+	var output []Balance
+	for _, value := range res {
+		if value.Balance > 0 {
+			output = append(output, Balance{Provider: p, Coin: coinMap[value.Currency], Balance: value})
+		}
+	}
+	return output
 }
 
 type CoinListResponse struct {
@@ -58,15 +89,22 @@ type Coin struct {
 type Balance struct {
 	Coin     Coin
 	Provider *Provider
+	Balance  BalanceSimple
+}
+
+type BalanceSimple struct {
+	Comment  string
+	Address  string
+	Currency string
 	Balance  float64
 }
 
 func (b *Balance) getBtcBalance() float64 {
-	return b.Coin.BtcPrice * b.Balance
+	return b.Coin.BtcPrice * b.Balance.Balance
 }
 
 func (b *Balance) getUsdBalance() float64 {
-	return b.Coin.UsdPrice * b.Balance
+	return b.Coin.UsdPrice * b.Balance.Balance
 }
 
 func (b *Balance) getSymbolString() string {
@@ -74,7 +112,7 @@ func (b *Balance) getSymbolString() string {
 }
 
 func (b *Balance) getBalanceString() string {
-	return fmt.Sprintf("%f", b.Balance)
+	return fmt.Sprintf("%f", b.Balance.Balance)
 }
 
 func (b *Balance) getProviderId() string {
@@ -106,7 +144,7 @@ func (q *questions) Main() {
 			Validate: survey.Required,
 			Prompt: &survey.Select{
 				Message: "What you want to do:",
-				Options: []string{"Add Exchange", "Reset Config"},
+				Options: []string{"Add Exchange", "Add ERC20 Adress", "Reset Config"},
 				Default: "Add Exchange",
 			},
 		},
@@ -121,8 +159,8 @@ func (q *questions) Exchange() {
 			Validate: survey.Required,
 			Prompt: &survey.Select{
 				Message: "Which:",
-				Options: ActiveProviders,
-				Default: ActiveProviders[0],
+				Options: ActiveExchangeProviders,
+				Default: ActiveExchangeProviders[0],
 			},
 		},
 	}, &q.answers)
@@ -138,6 +176,20 @@ func (q *questions) ExchangeCreds(settings []string) {
 		})
 	}
 	survey.Ask(questions, &q.answers)
+}
+
+func (q *questions) AddErc20() {
+	survey.Ask([]*survey.Question{
+		{
+			Name:     "address",
+			Prompt:   &survey.Input{Message: "Address"},
+			Validate: survey.Required,
+		},
+		{
+			Name:   "comment",
+			Prompt: &survey.Input{Message: "Comment"},
+		},
+	}, &q.answers)
 }
 
 func (q *questions) AreYouSure() {
@@ -174,7 +226,7 @@ func getConfigKeysOfProviderById(id string) []string {
 func (q *questions) Logic() {
 	if q.getKeySafe("what") == "Add Exchange" {
 		q.Exchange()
-		for _, exchange := range ActiveProviders {
+		for _, exchange := range ActiveExchangeProviders {
 			if q.getKeySafe("exchange") == exchange {
 				configKeys := getConfigKeysOfProviderById(exchange)
 				q.ExchangeCreds(configKeys)
@@ -182,7 +234,7 @@ func (q *questions) Logic() {
 				configMap := config.Read()
 				// write to config (merge)
 				for _, name := range configKeys {
-					configMap[name] = fmt.Sprint(q.getKeySafe(name))
+					configMap.Keys[name] = fmt.Sprint(q.getKeySafe(name))
 				}
 				config.Write(configMap)
 				fmt.Println("Done!")
@@ -190,13 +242,24 @@ func (q *questions) Logic() {
 		}
 		return
 	}
+	if q.getKeySafe("what") == "Add ERC20 Adress" {
+		q.AddErc20()
+		config := NewFileConfig()
+		configMap := config.Read()
+		configMap.Erc20Tokens = append(configMap.Erc20Tokens, Token{
+			Address: fmt.Sprint(q.getKeySafe("address")),
+			Comment: fmt.Sprint(q.getKeySafe("comment")),
+		})
+		config.Write(configMap)
+		fmt.Println("Done!")
+		return
+	}
 	if q.getKeySafe("what") == "Reset Config" {
 		if q.getKeySafe("reset") == "" {
 			q.AreYouSure()
 		} else if q.getKeySafe("reset") == "yes" {
 			config := NewFileConfig()
-			data := make(map[string]string)
-			config.Write(data)
+			config.Write(config.GetEmptyConfig())
 			fmt.Println("Done!")
 		}
 		return
@@ -232,7 +295,7 @@ func main() {
 }
 
 func showOverview() {
-	coins := getCoins()
+	coins := getCoins(1, 100, make(map[string]Coin))
 	config := NewFileConfig()
 	providers := initProviders(ActiveProviders, config)
 	res := getAllBalances(providers, coins)
@@ -245,7 +308,7 @@ func showOverview() {
 func getAllBalances(providers []Provider, coins map[string]Coin) []Balance {
 	var balances []Balance
 	for _, provider := range providers {
-		res := getCoinsOfProvider(provider, coins)
+		res := provider.getCoinsOfProvider(coins)
 		balances = append(balances, res...)
 	}
 	return balances
@@ -297,36 +360,13 @@ func toArray(coinMap map[string]Coin) []string {
 	return output
 }
 
-func getCoinsOfProvider(p Provider, coinMap map[string]Coin) []Balance {
-	res := p.instance.GetAll(toArray(coinMap))
-	var output []Balance
-	for key, value := range res {
-		if value > 0 {
-			output = append(output, Balance{Provider: &p, Coin: coinMap[key], Balance: value})
-		}
-	}
-	return output
-}
-
-func providerHasValidConf(p *Provider, c ConfigInterface) bool {
-	keys := p.factory.ConfigKeys()
-	var isValid bool = true
-	for _, key := range keys {
-		if c.GetKey(key) == "" {
-			isValid = false
-		}
-	}
-	return isValid
-}
-
 func initProviders(neededProviders []string, config ConfigInterface) []Provider {
 	var activeProvider []Provider
 	neededProvidersIdMap := toMap(neededProviders)
 	for _, provider := range Providers {
 		if _, ok := neededProvidersIdMap[provider.id]; ok {
 			// TODO: maybe refactor Provider to Provider / ProviderInited
-			isValid := providerHasValidConf(&provider, config)
-			if isValid {
+			if provider.isValid(config) {
 				activeProvider = append(activeProvider, Provider{
 					id:       provider.id,
 					factory:  provider.factory,
@@ -338,8 +378,8 @@ func initProviders(neededProviders []string, config ConfigInterface) []Provider 
 	return activeProvider
 }
 
-func getCoins() map[string]Coin {
-	resp, err := grequests.Get(CoinList, nil)
+func getCoins(skip int, limit int, output map[string]Coin) map[string]Coin {
+	resp, err := grequests.Get(CoinList+"?convert=BTC&sort=id&start="+strconv.Itoa(skip)+"&limit="+strconv.Itoa(limit), nil)
 	if err != nil {
 		panic(errors.New("request failed"))
 	}
@@ -348,7 +388,6 @@ func getCoins() map[string]Coin {
 	if err != nil {
 		panic(errors.New("request decode failed"))
 	}
-	output := make(map[string]Coin)
 	for _, coin := range coinRes.Data {
 		output[coin.Symbol] = Coin{
 			Id:       coin.Id,
@@ -358,6 +397,9 @@ func getCoins() map[string]Coin {
 			BtcPrice: coin.Quote["BTC"]["price"], // TODO: find safer way
 			UsdPrice: coin.Quote["USD"]["price"], // TODO: find safer way
 		}
+	}
+	if len(coinRes.Data) == 100 {
+		return getCoins(skip+limit, limit, output)
 	}
 	return output
 }

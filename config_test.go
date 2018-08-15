@@ -34,13 +34,15 @@ func TestConfig(t *testing.T) {
 		}
 		path := tmpfile.Name()
 		defer os.Remove(path)
-		writeFile(path, map[string]string{
-			"a": "b",
-		})
-		data := readFile(path)
-		writeFile(path, data)
-		So(data, ShouldContainKey, "a")
-		So(data["a"], ShouldEqual, "b")
-
+		input := ConfigFileStruct{
+			Keys: map[string]string{
+				"a": "b",
+			},
+		}
+		writeFile(path, input)
+		output := readFile(path)
+		writeFile(path, output)
+		So(output.Keys, ShouldContainKey, "a")
+		So(output.Keys["a"], ShouldEqual, "b")
 	})
 }
