@@ -1,5 +1,9 @@
 language: go
 
+os:
+  - linux
+  - osx
+
 before_install:
   # Setup dependency management tool
   - curl https://raw.githubusercontent.com/golang/dep/master/install.sh | sh
