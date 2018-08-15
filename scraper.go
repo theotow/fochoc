@@ -29,15 +29,17 @@ func GetER20Tokens(address string) map[string]float64 {
 
 	c.OnHTML("#balancelist a", func(e *colly.HTMLElement) {
 		html, _ := e.DOM.Html()
-		result := getParams(`\"\>(?P<Name>[A-Z]{0,3})\<\/i\>(.*)\<br\/\>(?P<Value>[0-9,]{0,10})\s[A-Z]{3}`, html)
+		result := getParams(`(\>|\s)(?P<Name>[A-Z]{0,3})\<\/i\>(.*)\<br\/\>(?P<Value>[0-9,\.]{0,20})\s[A-Z]{0,3}`, html)
 		if len(result) == 3 {
-			output[result["Name"]], _ = strconv.ParseFloat(strings.Replace(result["Value"], ",", ".", -1), 64)
+			output[result["Name"]], _ = strconv.ParseFloat(strings.Replace(result["Value"], ",", "", -1), 64)
 		}
 	})
 
 	c.OnHTML("#ContentPlaceHolder1_divSummary table", func(e *colly.HTMLElement) {
-		html := e.DOM.Find("tbody tr:nth-child(1)").Text()
-		result := getParams(`(?P<Value>[0-9\.]{0,20})\sEther`, html)
+		html, _ := e.DOM.Find("tbody tr:nth-child(1)").Html()
+		html = strings.Replace(html, "<b>.</b>", ".", -1)
+		html = strings.Replace(html, ",", "", -1)
+		result := getParams(`(?P<Value>[0-9\.]{0,40})\sEther`, html)
 		if reflect.TypeOf(result["Value"]).String() == "string" && len(result["Value"]) > 0 {
 			output["ETH"], _ = strconv.ParseFloat(result["Value"], 64)
 		}

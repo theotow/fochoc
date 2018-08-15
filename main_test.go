@@ -27,7 +27,7 @@ func (c Config) GetTokens() []Token {
 
 func TestRun(t *testing.T) {
 	Convey("getCoins() should execute without error", t, func() {
-		res := getCoins()
+		res := getCoins(1, 100, make(map[string]Coin))
 		if res["BTC"].Symbol != "BTC" {
 			t.Error("btc not found")
 		}

@@ -14,7 +14,7 @@ import (
 	"github.com/levigross/grequests"
 )
 
-const CoinList = "https://api.coinmarketcap.com/v2/ticker/?convert=BTC"
+const CoinList = "https://api.coinmarketcap.com/v2/ticker/"
 const AppName = "fochoc"
 const AppVersion = "0.0.1"
 
@@ -379,7 +379,7 @@ func initProviders(neededProviders []string, config ConfigInterface) []Provider 
 }
 
 func getCoins(skip int, limit int, output map[string]Coin) map[string]Coin {
-	resp, err := grequests.Get(CoinList+"?sort=id&start="+strconv.Itoa(skip)+"&limit="+strconv.Itoa(limit), nil)
+	resp, err := grequests.Get(CoinList+"?convert=BTC&sort=id&start="+strconv.Itoa(skip)+"&limit="+strconv.Itoa(limit), nil)
 	if err != nil {
 		panic(errors.New("request failed"))
 	}
