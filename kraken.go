@@ -7,6 +7,7 @@ import (
 )
 
 type kraken struct {
+	Exchange
 	ResultRaw *krakenapi.BalanceResponse
 }
 
@@ -57,14 +58,6 @@ func (k *kraken) getLocalKey(key string) string {
 	}
 	// log (missing static mapping )
 	return key
-}
-
-func (k *kraken) GetAll(keys []string) map[string]float64 {
-	m := make(map[string]float64)
-	for _, key := range keys {
-		m[key] = k.GetCurrencyValue(key)
-	}
-	return m
 }
 
 func (k *kraken) AddTestBalance(name string, value float64) {

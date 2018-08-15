@@ -42,6 +42,27 @@ type Provider struct {
 	id       string
 }
 
+func (p *Provider) isValid(c ConfigInterface) bool {
+	keys := p.factory.ConfigKeys()
+	var isValid = true
+	for _, key := range keys {
+		if c.GetKey(key) == "" {
+			isValid = false
+		}
+	}
+	return isValid
+}
+func (p *Provider) getCoinsOfProvider(coinMap map[string]Coin) []Balance {
+	res := p.instance.GetAll(toArray(coinMap))
+	var output []Balance
+	for _, value := range res {
+		if value.Balance > 0 {
+			output = append(output, Balance{Provider: p, Coin: coinMap[value.Currency], Balance: value})
+		}
+	}
+	return output
+}
+
 type CoinListResponse struct {
 	Data map[string]Coin `json:"data"`
 }
@@ -58,15 +79,22 @@ type Coin struct {
 type Balance struct {
 	Coin     Coin
 	Provider *Provider
+	Balance  BalanceSimple
+}
+
+type BalanceSimple struct {
+	Comment  string
+	Address  string
+	Currency string
 	Balance  float64
 }
 
 func (b *Balance) getBtcBalance() float64 {
-	return b.Coin.BtcPrice * b.Balance
+	return b.Coin.BtcPrice * b.Balance.Balance
 }
 
 func (b *Balance) getUsdBalance() float64 {
-	return b.Coin.UsdPrice * b.Balance
+	return b.Coin.UsdPrice * b.Balance.Balance
 }
 
 func (b *Balance) getSymbolString() string {
@@ -74,7 +102,7 @@ func (b *Balance) getSymbolString() string {
 }
 
 func (b *Balance) getBalanceString() string {
-	return fmt.Sprintf("%f", b.Balance)
+	return fmt.Sprintf("%f", b.Balance.Balance)
 }
 
 func (b *Balance) getProviderId() string {
@@ -244,7 +272,7 @@ func showOverview() {
 func getAllBalances(providers []Provider, coins map[string]Coin) []Balance {
 	var balances []Balance
 	for _, provider := range providers {
-		res := getCoinsOfProvider(provider, coins)
+		res := provider.getCoinsOfProvider(coins)
 		balances = append(balances, res...)
 	}
 	return balances
@@ -296,36 +324,13 @@ func toArray(coinMap map[string]Coin) []string {
 	return output
 }
 
-func getCoinsOfProvider(p Provider, coinMap map[string]Coin) []Balance {
-	res := p.instance.GetAll(toArray(coinMap))
-	var output []Balance
-	for key, value := range res {
-		if value > 0 {
-			output = append(output, Balance{Provider: &p, Coin: coinMap[key], Balance: value})
-		}
-	}
-	return output
-}
-
-func providerHasValidConf(p *Provider, c ConfigInterface) bool {
-	keys := p.factory.ConfigKeys()
-	var isValid bool = true
-	for _, key := range keys {
-		if c.GetKey(key) == "" {
-			isValid = false
-		}
-	}
-	return isValid
-}
-
 func initProviders(neededProviders []string, config ConfigInterface) []Provider {
 	var activeProvider []Provider
 	neededProvidersIdMap := toMap(neededProviders)
 	for _, provider := range Providers {
 		if _, ok := neededProvidersIdMap[provider.id]; ok {
 			// TODO: maybe refactor Provider to Provider / ProviderInited
-			isValid := providerHasValidConf(&provider, config)
-			if isValid {
+			if provider.isValid(config) {
 				activeProvider = append(activeProvider, Provider{
 					id:       provider.id,
 					factory:  provider.factory,

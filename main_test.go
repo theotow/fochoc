@@ -21,6 +21,10 @@ func (c Config) Initialised() bool {
 	return true
 }
 
+func (c Config) GetTokens() []Token {
+	return []Token{}
+}
+
 func TestRun(t *testing.T) {
 	Convey("getCoins() should execute without error", t, func() {
 		res := getCoins()

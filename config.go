@@ -19,8 +19,8 @@ type FileConfig struct {
 }
 
 type Token struct {
-	comment string
-	address string
+	Comment string
+	Address string
 }
 
 type ConfigFileStruct struct {
@@ -30,12 +30,13 @@ type ConfigFileStruct struct {
 
 type ConfigInterface interface {
 	GetKey(name string) string
+	GetTokens() []Token
 	Initialised() bool
 }
 
 type ConfigProviderInterface interface {
 	GetCurrencyValue(name string) float64
-	GetAll(keys []string) map[string]float64
+	GetAll(keys []string) []BalanceSimple
 	AddTestBalance(name string, value float64)
 }
 
@@ -54,6 +55,12 @@ func (c *EnvConfig) GetKey(name string) string {
 
 func (c *EnvConfig) Initialised() bool {
 	return true
+}
+
+func (c *EnvConfig) GetTokens() []Token {
+	return []Token{
+		{Address: "0xf27d22d64e625c2a34e31369d9b88828146df52b", Comment: "comment"},
+	}
 }
 
 func (c *FileConfig) GetKey(name string) string {
@@ -77,6 +84,10 @@ func (c *FileConfig) Read() ConfigFileStruct {
 
 func (c *FileConfig) GetEmptyConfig() ConfigFileStruct {
 	return ConfigFileStruct{}
+}
+
+func (c *FileConfig) GetTokens() []Token {
+	return c.config.Erc20Tokens
 }
 
 // TODO: put in main.go

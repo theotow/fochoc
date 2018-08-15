@@ -6,6 +6,7 @@ import (
 )
 
 type bittrex struct {
+	Exchange
 	ResultRaw []bit.Balance
 }
 type methodsBittrex struct{}
@@ -40,14 +41,6 @@ func (b *bittrex) GetCurrencyValue(name string) float64 {
 		}
 	}
 	return 0.00
-}
-
-func (b *bittrex) GetAll(keys []string) map[string]float64 {
-	m := make(map[string]float64)
-	for _, key := range keys {
-		m[key] = b.GetCurrencyValue(key)
-	}
-	return m
 }
 
 func (b *bittrex) AddTestBalance(name string, value float64) {
