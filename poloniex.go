@@ -9,7 +9,6 @@ import (
 )
 
 type poloniex struct {
-	Exchange
 	ResultRaw map[string]polo.Balance
 }
 type methodsPoloniex struct{}
@@ -56,4 +55,8 @@ func (b *poloniex) AddTestBalance(name string, value float64) {
 		BtcValue:  "0.000",
 		OnOrders:  "0.000",
 	}
+}
+
+func (b *poloniex) GetAll(keys []string) []BalanceSimple {
+	return GetAllValues(keys, b.GetCurrencyValue)
 }

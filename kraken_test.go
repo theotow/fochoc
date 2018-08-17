@@ -22,7 +22,11 @@ func TestKraken(t *testing.T) {
 		notexisting := res.GetCurrencyValue("ETHH")
 		So(notexisting, ShouldEqual, 0.0)
 	})
-	SkipConvey("should get all", t, func() {
-
+	Convey("should be able to get all", t, func() {
+		i := instance.Get(&config)
+		i.AddTestBalance("ETH", 1.11)
+		res := i.GetAll([]string{"ETH"})
+		So(len(res), ShouldEqual, 1)
+		So(res[0].Balance, ShouldEqual, 1.11)
 	})
 }

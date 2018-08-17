@@ -10,7 +10,6 @@ import (
 )
 
 type binance struct {
-	Exchange
 	ResultRaw []bin.Balance
 }
 type methodsBinance struct{}
@@ -53,4 +52,8 @@ func (b *binance) GetCurrencyValue(name string) float64 {
 
 func (b *binance) AddTestBalance(name string, value float64) {
 	b.ResultRaw = append(b.ResultRaw, bin.Balance{Free: fmt.Sprintf("%f", value), Locked: "0.00", Asset: name})
+}
+
+func (b *binance) GetAll(keys []string) []BalanceSimple {
+	return GetAllValues(keys, b.GetCurrencyValue)
 }

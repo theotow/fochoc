@@ -22,7 +22,11 @@ func TestPoloniex(t *testing.T) {
 		notexisting := i.GetCurrencyValue("ETHH")
 		So(notexisting, ShouldEqual, 0.0)
 	})
-	SkipConvey("should get all", t, func() {
-
+	Convey("should be able to get all", t, func() {
+		i := pInstance.Get(&pConfig)
+		i.AddTestBalance("ETH", 1.11)
+		res := i.GetAll([]string{"ETH"})
+		So(len(res), ShouldEqual, 1)
+		So(res[0].Balance, ShouldEqual, 1.11)
 	})
 }

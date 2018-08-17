@@ -19,20 +19,11 @@ func TestBinance(t *testing.T) {
 		result := res.GetCurrencyValue("ETH")
 		So(result, ShouldEqual, 1.01)
 	})
-	SkipConvey("should get all", t, func() {
-		// res := bInstance.Get(&bConfig)
-		// res.ResultRaw = []bin.Balance{
-		// 	bin.Balance{Asset: "ETH", Free: "0.00", Locked: "1.00"},
-		// 	bin.Balance{Asset: "XMR", Free: "0.00", Locked: "1.00"},
-		// }
-		// result := res.GetAll([]string{"ETH", "XMR"})
-		// if len(result) != 2 {
-		// 	t.Error("should have len == 2")
-		// }
-		// for _, key := range []string{"ETH", "XMR"} {
-		// 	if result[key] != 1 {
-		// 		t.Error("should be 1")
-		// 	}
-		// }
+	Convey("should be able to get all", t, func() {
+		i := bInstance.Get(&bConfig)
+		i.AddTestBalance("ETH", 1.11)
+		res := i.GetAll([]string{"ETH"})
+		So(len(res), ShouldEqual, 1)
+		So(res[0].Balance, ShouldEqual, 1.11)
 	})
 }

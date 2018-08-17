@@ -7,7 +7,6 @@ import (
 )
 
 type kraken struct {
-	Exchange
 	ResultRaw *krakenapi.BalanceResponse
 }
 
@@ -18,6 +17,27 @@ var mapping = map[string]string{
 	"USDT": "USDT",
 	"XMR":  "XXMR",
 	"EUR":  "ZEUR",
+	"BTC":  "XXBT",
+	"USD":  "ZUSD",
+	"KRW":  "ZKRW",
+	"JPY":  "ZJPY",
+	"GBP":  "ZGBP",
+	"CAD":  "ZCAD",
+	"ZEC":  "XZEC",
+	"XVN":  "XXVN",
+	"XRP":  "XXRP",
+	"XLM":  "XXLM",
+	"XDG":  "XXDG",
+	"REP":  "XREP",
+	"NMC":  "XNMC",
+	"MLN":  "XMLN",
+	"LTC":  "XLTC",
+	"ICN":  "XICN",
+	"ETC":  "XETC",
+	"DAO":  "XDAO",
+	"FEE":  "KFEE",
+	"GNO":  "GNO",
+	"EOS":  "EOS",
 }
 
 type methodsKraken struct{}
@@ -65,4 +85,8 @@ func (k *kraken) AddTestBalance(name string, value float64) {
 	if v.IsValid() {
 		v.SetFloat(value)
 	}
+}
+
+func (b *kraken) GetAll(keys []string) []BalanceSimple {
+	return GetAllValues(keys, b.GetCurrencyValue)
 }

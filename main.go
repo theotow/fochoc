@@ -63,8 +63,9 @@ func (p *Provider) isValid(c ConfigInterface) bool {
 	return isValid
 }
 func (p *Provider) getCoinsOfProvider(coinMap map[string]Coin) []Balance {
-	res := p.instance.GetAll(toArray(coinMap))
-	var output []Balance
+	listOfCoinsToFetch := toArray(coinMap)
+	res := p.instance.GetAll(listOfCoinsToFetch)
+	output := []Balance{}
 	for _, value := range res {
 		if value.Balance > 0 {
 			output = append(output, Balance{Provider: p, Coin: coinMap[value.Currency], Balance: value})
@@ -86,12 +87,49 @@ type Coin struct {
 	UsdPrice float64
 }
 
+// Balance is the main struct which contains the links to provider,
+// the coin and its current value in usd/btc and the actual address and comment
 type Balance struct {
 	Coin     Coin
 	Provider *Provider
 	Balance  BalanceSimple
 }
 
+// NewBalance allows to create a Balance struct with all related structs
+// mainly for testing
+func NewBalance(
+	coinName string,
+	balance float64,
+	id int,
+	btcPrice float64,
+	usdPrice float64,
+	providerID string,
+	providerFactory ProviderInterface,
+) Balance {
+	return Balance{
+		Coin: Coin{
+			Id:       id,
+			Symbol:   coinName,
+			Name:     "name",
+			Quote:    make(map[string]map[string]float64),
+			BtcPrice: btcPrice,
+			UsdPrice: usdPrice,
+		},
+		Balance: BalanceSimple{
+			Comment:  "comment",
+			Address:  "none",
+			Currency: coinName,
+			Balance:  balance,
+		},
+		Provider: &Provider{
+			id:      providerID,
+			factory: providerFactory,
+		},
+	}
+}
+
+// BalanceSimple stores the address related balance
+// if crypto is stored on exchange the balance is tied to the currency
 type BalanceSimple struct {
 	Comment  string
 	Address  string
@@ -115,7 +153,7 @@ func (b *Balance) getBalanceString() string {
 	return fmt.Sprintf("%f", b.Balance.Balance)
 }
 
-func (b *Balance) getProviderId() string {
+func (b *Balance) getProviderID() string {
 	return b.Provider.id
 }
 
@@ -214,7 +252,7 @@ func (q *questions) getKeySafe(key string) interface{} {
 	return ""
 }
 
-func getConfigKeysOfProviderById(id string) []string {
+func getConfigKeysOfProviderByID(id string) []string {
 	for _, provider := range Providers {
 		if provider.id == id {
 			return provider.factory.ConfigKeys()
@@ -228,7 +266,7 @@ func (q *questions) Logic() {
 		q.Exchange()
 		for _, exchange := range ActiveExchangeProviders {
 			if q.getKeySafe("exchange") == exchange {
-				configKeys := getConfigKeysOfProviderById(exchange)
+				configKeys := getConfigKeysOfProviderByID(exchange)
 				q.ExchangeCreds(configKeys)
 				config := NewFileConfig()
 				configMap := config.Read()
@@ -332,7 +370,7 @@ func renderTable(data []Balance, sumBtc float64, sumUsd float64) {
 			balance.getBalanceString(),
 			balance.getUsdBalanceString(),
 			balance.getBtcBalanceString(),
-			balance.getProviderId(),
+			balance.getProviderID(),
 		})
 	}
 
@@ -354,7 +392,7 @@ func toMap(array []string) map[string]bool {
 
 func toArray(coinMap map[string]Coin) []string {
 	var output []string
-	for key, _ := range coinMap {
+	for key := range coinMap {
 		output = append(output, key)
 	}
 	return output
@@ -362,9 +400,9 @@ func toArray(coinMap map[string]Coin) []string {
 
 func initProviders(neededProviders []string, config ConfigInterface) []Provider {
 	var activeProvider []Provider
-	neededProvidersIdMap := toMap(neededProviders)
+	neededProvidersIDMap := toMap(neededProviders)
 	for _, provider := range Providers {
-		if _, ok := neededProvidersIdMap[provider.id]; ok {
+		if _, ok := neededProvidersIDMap[provider.id]; ok {
 			// TODO: maybe refactor Provider to Provider / ProviderInited
 			if provider.isValid(config) {
 				activeProvider = append(activeProvider, Provider{
