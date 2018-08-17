@@ -28,5 +28,12 @@
 - [ ] Improve error reporting
 - [x] Add ERC-20 token support
 - [x] Add Bittrex exchange
-- [ ] Improve test coverage
+- [x] Improve test coverage
+
+## Ideas
+
+- CSV export
+- Group By exchange / address / etc.
+- Order by
+- Support for more currencies
 
