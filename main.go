@@ -6,7 +6,9 @@ import (
 	"io/ioutil"
 	"os"
 	"strconv"
+	"time"
 
+	"github.com/briandowns/spinner"
 	"github.com/olekukonko/tablewriter"
 	survey "gopkg.in/AlecAivazis/survey.v1"
 	cli "gopkg.in/urfave/cli.v1"
@@ -332,15 +334,33 @@ func main() {
 	}
 }
 
-func showOverview() {
+type tableData struct {
+	balances []Balance
+	usd      float64
+	btc      float64
+}
+
+func getTableData() tableData {
 	coins := getCoins(1, 100, make(map[string]Coin))
 	config := NewFileConfig()
 	providers := initProviders(ActiveProviders, config)
 	res := getAllBalances(providers, coins)
 	usdSum, btcSum := getAggSum(res)
+	return tableData{res, usdSum, btcSum}
+}
+
+func showOverview() {
+	ch := make(chan tableData)
+	go func(c chan tableData) {
+		c <- getTableData()
+	}(ch)
+	s := spinner.New(spinner.CharSets[9], 100*time.Millisecond) // Build our new spinner
+	s.Start()
+	res := <-ch
+	s.Stop()
 	file, _ := ioutil.ReadFile("./assets/cookie.txt")
 	fmt.Println(string(file[:]))
-	renderTable(res, btcSum, usdSum)
+	renderTable(res.balances, res.btc, res.usd)
 }
 
 func getAllBalances(providers []Provider, coins map[string]Coin) []Balance {
