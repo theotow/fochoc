@@ -28,6 +28,20 @@ type ConfigFileStruct struct {
 	Erc20Tokens []Token           `json:"erc20Tokens"`
 }
 
+func (c *ConfigFileStruct) addKey(key string, value string) {
+	if c.Keys == nil {
+		c.Keys = make(map[string]string)
+	}
+	c.Keys[key] = value
+}
+
+func (c *ConfigFileStruct) addErc20(token Token) {
+	if c.Erc20Tokens == nil {
+		c.Erc20Tokens = []Token{}
+	}
+	c.Erc20Tokens = append(c.Erc20Tokens, token)
+}
+
 type ConfigInterface interface {
 	GetKey(name string) string
 	GetTokens() []Token
@@ -125,5 +139,8 @@ func readFile(path string) ConfigFileStruct {
 func writeFile(path string, data ConfigFileStruct) {
 	dataBytes, err := json.Marshal(&data)
 	check(err, "cannot marshal")
-	ioutil.WriteFile(path, dataBytes, FileMode)
+	errIo := ioutil.WriteFile(path, dataBytes, FileMode)
+	if err != nil {
+		panic(errIo)
+	}
 }

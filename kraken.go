@@ -59,6 +59,7 @@ func (m *methodsKraken) ConfigKeys() []string {
 	return []string{"KRAKEN_KEY", "KRAKEN_SECRET"}
 }
 
+// NewKraken is used to create a kraken provider adapter
 func NewKraken() *methodsKraken {
 	return &methodsKraken{}
 }
@@ -87,6 +88,6 @@ func (k *kraken) AddTestBalance(name string, value float64) {
 	}
 }
 
-func (b *kraken) GetAll(keys []string) []BalanceSimple {
-	return GetAllValues(keys, b.GetCurrencyValue)
+func (k *kraken) GetAll(keys []string) []BalanceSimple {
+	return GetAllValues(keys, k.GetCurrencyValue)
 }

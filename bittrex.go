@@ -28,6 +28,7 @@ func (m *methodsBittrex) ConfigKeys() []string {
 	return []string{"BITTREX_KEY", "BITTREX_SECRET"}
 }
 
+// NewBittrex is used to create a bittrex provider adapter
 func NewBittrex() *methodsBittrex {
 	return &methodsBittrex{}
 }

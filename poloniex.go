@@ -31,6 +31,7 @@ func (m *methodsPoloniex) ConfigKeys() []string {
 	return []string{"POLONIEX_KEY", "POLONIEX_SECRET"}
 }
 
+// NewPoloniex is used to create a poloniex provider adapter
 func NewPoloniex() *methodsPoloniex {
 	return &methodsPoloniex{}
 }

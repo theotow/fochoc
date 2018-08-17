@@ -32,6 +32,7 @@ func (m *methodsBinance) ConfigKeys() []string {
 	return []string{"BINANCE_KEY", "BINANCE_SECRET"}
 }
 
+// NewBinance is used to create a binance provider adapter
 func NewBinance() *methodsBinance {
 	return &methodsBinance{}
 }

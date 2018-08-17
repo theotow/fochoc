@@ -272,7 +272,7 @@ func (q *questions) Logic() {
 				configMap := config.Read()
 				// write to config (merge)
 				for _, name := range configKeys {
-					configMap.Keys[name] = fmt.Sprint(q.getKeySafe(name))
+					configMap.addKey(name, fmt.Sprint(q.getKeySafe(name)))
 				}
 				config.Write(configMap)
 				fmt.Println("Done!")
@@ -284,7 +284,7 @@ func (q *questions) Logic() {
 		q.AddErc20()
 		config := NewFileConfig()
 		configMap := config.Read()
-		configMap.Erc20Tokens = append(configMap.Erc20Tokens, Token{
+		configMap.addErc20(Token{
 			Address: fmt.Sprint(q.getKeySafe("address")),
 			Comment: fmt.Sprint(q.getKeySafe("comment")),
 		})
