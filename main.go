@@ -155,6 +155,14 @@ func (b *Balance) getBalanceString() string {
 	return fmt.Sprintf("%f", b.Balance.Balance)
 }
 
+func (b *Balance) getAddressString() string {
+	return b.Balance.Address
+}
+
+func (b *Balance) getCommentString() string {
+	return b.Balance.Comment
+}
+
 func (b *Balance) getProviderID() string {
 	return b.Provider.id
 }
@@ -391,12 +399,14 @@ func renderTable(data []Balance, sumBtc float64, sumUsd float64) {
 			balance.getUsdBalanceString(),
 			balance.getBtcBalanceString(),
 			balance.getProviderID(),
+			balance.getAddressString(),
+			balance.getCommentString(),
 		})
 	}
 
 	table := tablewriter.NewWriter(os.Stdout)
-	table.SetHeader([]string{"Asset", "Amount", "Value USD", "Value BTC", "Sources"})
-	table.SetFooter([]string{"", "", fmt.Sprintf("$%f", sumUsd), fmt.Sprintf("BTC %f", sumBtc), ""})
+	table.SetHeader([]string{"Asset", "Amount", "Value USD", "Value BTC", "Sources", "Address", "Comment"})
+	table.SetFooter([]string{"", "", fmt.Sprintf("$%f", sumUsd), fmt.Sprintf("BTC %f", sumBtc), "", "", ""})
 	table.SetBorder(false)
 	table.AppendBulk(tableData)
 	table.Render()
