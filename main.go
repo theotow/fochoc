@@ -68,7 +68,7 @@ func (p *Provider) getCoinsOfProvider(coinMap map[string]Coin) []Balance {
 	output := []Balance{}
 	for _, value := range res {
 		if value.Balance > 0 {
-			output = append(output, Balance{Provider: p, Coin: coinMap[value.Currency], Balance: value})
+			output = append(output, Balance{Provider: *p, Coin: coinMap[value.Currency], Balance: value})
 		}
 	}
 	return output
@@ -91,7 +91,7 @@ type Coin struct {
 // the coin and its current value in usd/btc and the actual address and comment
 type Balance struct {
 	Coin     Coin
-	Provider *Provider
+	Provider Provider
 	Balance  BalanceSimple
 }
 
@@ -121,7 +121,7 @@ func NewBalance(
 			Currency: coinName,
 			Balance:  balance,
 		},
-		Provider: &Provider{
+		Provider: Provider{
 			id:      providerID,
 			factory: providerFactory,
 		},
