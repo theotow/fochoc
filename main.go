@@ -349,7 +349,7 @@ type tableData struct {
 }
 
 func getTableData() tableData {
-	coins := getCoins(1, 100, make(map[string]Coin))
+	coins := getCoinsAsync()
 	config := NewFileConfig()
 	providers := initProviders(ActiveProviders, config)
 	res := getAllBalances(providers, coins)
@@ -365,6 +365,7 @@ func showOverview() {
 	s := spinner.New(spinner.CharSets[9], 100*time.Millisecond) // Build our new spinner
 	s.Start()
 	res := <-ch
+	close(ch)
 	s.Stop()
 	file, _ := ioutil.ReadFile("./assets/cookie.txt")
 	fmt.Println(string(file[:]))
@@ -446,7 +447,7 @@ func initProviders(neededProviders []string, config ConfigInterface) []Provider 
 	return activeProvider
 }
 
-func getCoins(skip int, limit int, output map[string]Coin) map[string]Coin {
+func getCoins(skip int, limit int) map[string]Coin {
 	resp, err := grequests.Get(CoinList+"?convert=BTC&sort=id&start="+strconv.Itoa(skip)+"&limit="+strconv.Itoa(limit), nil)
 	if err != nil {
 		panic(errors.New("request failed"))
@@ -456,6 +457,7 @@ func getCoins(skip int, limit int, output map[string]Coin) map[string]Coin {
 	if err != nil {
 		panic(errors.New("request decode failed"))
 	}
+	output := make(map[string]Coin)
 	for _, coin := range coinRes.Data {
 		output[coin.Symbol] = Coin{
 			Id:       coin.Id,
@@ -466,8 +468,33 @@ func getCoins(skip int, limit int, output map[string]Coin) map[string]Coin {
 			UsdPrice: coin.Quote["USD"]["price"], // TODO: find safer way
 		}
 	}
-	if len(coinRes.Data) == 100 {
-		return getCoins(skip+limit, limit, output)
+	return output
+}
+
+func getCoinsAsync() map[string]Coin {
+	ch := make(chan map[string]Coin)
+	output := make(map[string]Coin)
+	limit := 100       // coins fetched per request
+	totalLimit := 2000 // max coins fetched in total
+	sendCount := 0
+	receivedCount := 0
+	for i := 0; i < totalLimit; {
+		go func(skip int) {
+			ch <- getCoins(skip+1, limit)
+		}(i)
+		sendCount++
+		i += limit
+	}
+	for {
+		res, _ := <-ch
+		receivedCount++
+		for k, v := range res {
+			output[k] = v
+		}
+		if sendCount == receivedCount {
+			close(ch)
+			break
+		}
 	}
 	return output
 }

@@ -27,7 +27,7 @@ func (c Config) GetTokens() []Token {
 
 func TestRun(t *testing.T) {
 	Convey("getCoins() should execute without error", t, func() {
-		res := getCoins(1, 100, make(map[string]Coin))
+		res := getCoins(1, 100)
 		if res["BTC"].Symbol != "BTC" {
 			t.Error("btc not found")
 		}
@@ -37,6 +37,12 @@ func TestRun(t *testing.T) {
 		if res["BTC"].UsdPrice <= 0 {
 			t.Error("usd price should be > 0")
 		}
+	})
+	Convey("getCoinsAsync() should execute without error", t, func() {
+		res := getCoinsAsync()
+		So(res["BTC"].Symbol, ShouldEqual, "BTC")
+		So(res["BTC"].BtcPrice, ShouldEqual, 1)
+		So(res["BTC"].UsdPrice, ShouldBeGreaterThan, 1000)
 	})
 	Convey("initProviders() should only init valid providers", t, func() {
 		config := Config{}
