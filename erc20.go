@@ -1,17 +1,24 @@
 package main
 
+import (
+	"errors"
+)
+
 type erc20 struct {
 	ResultRaw []BalanceSimple
 }
 
 type methodsEcr20 struct{}
 
-func initEcr20(c ConfigInterface) *erc20 {
+func initEcr20(c ConfigInterface) (*erc20, error) {
 	output := []BalanceSimple{}
 	// TODO: token is a misleading word here
 	tokens := c.GetTokens()
 	for _, token := range tokens {
 		currencyMap := GetER20Tokens(token.Address)
+		if len(currencyMap) == 0 {
+			return nil, errors.New("erc20-address: " + token.Address + " didnt yield anything")
+		}
 		for currency, balance := range currencyMap {
 			output = append(output, BalanceSimple{
 				Address:  token.Address,
@@ -21,10 +28,10 @@ func initEcr20(c ConfigInterface) *erc20 {
 			})
 		}
 	}
-	return &erc20{ResultRaw: output}
+	return &erc20{ResultRaw: output}, nil
 }
 
-func (m *methodsEcr20) Get(c ConfigInterface) ConfigProviderInterface {
+func (m *methodsEcr20) Get(c ConfigInterface) (ConfigProviderInterface, error) {
 	return initEcr20(c)
 }
 

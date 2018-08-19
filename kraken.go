@@ -42,16 +42,16 @@ var mapping = map[string]string{
 
 type methodsKraken struct{}
 
-func initKraken(c ConfigInterface) *kraken {
+func initKraken(c ConfigInterface) (*kraken, error) {
 	api := krakenapi.New(c.GetKey("KRAKEN_KEY"), c.GetKey("KRAKEN_SECRET"))
 	result, err := api.Balance()
 	if err != nil {
-		panic(err)
+		return nil, err
 	}
-	return &kraken{ResultRaw: result}
+	return &kraken{ResultRaw: result}, nil
 }
 
-func (m *methodsKraken) Get(c ConfigInterface) ConfigProviderInterface {
+func (m *methodsKraken) Get(c ConfigInterface) (ConfigProviderInterface, error) {
 	return initKraken(c)
 }
 

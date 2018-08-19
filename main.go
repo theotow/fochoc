@@ -44,7 +44,7 @@ var ActiveExchangeProviders = []string{
 }
 
 type ProviderInterface interface {
-	Get(c ConfigInterface) ConfigProviderInterface
+	Get(c ConfigInterface) (ConfigProviderInterface, error)
 	ConfigKeys() []string
 }
 
@@ -52,6 +52,19 @@ type Provider struct {
 	instance ConfigProviderInterface
 	factory  ProviderInterface
 	id       string
+}
+
+type ProviderError struct {
+	errorMsg   string
+	providerID string
+}
+
+func (e *ProviderError) Error() string {
+	return "provider(" + e.providerID + ") could not be initialized, maybe the key/secret is invalid, to edit config visit ~/.fochocconfig.json, error: " + e.errorMsg
+}
+
+func NewProviderError(err string, id string) *ProviderError {
+	return &ProviderError{errorMsg: err, providerID: id}
 }
 
 func (p *Provider) isValid(c ConfigInterface) bool {
@@ -316,13 +329,17 @@ func (q *questions) Logic() {
 }
 
 func main() {
+	defer func() {
+		if r := recover(); r != nil {
+			fmt.Println("I crashed, im so so sorry")
+		}
+	}()
 	app := cli.NewApp()
 	app.Name = AppName
 	app.Usage = "how to run this"
 	app.Version = AppVersion
 	app.Action = func(c *cli.Context) error {
-		showOverview()
-		return nil
+		return showOverview()
 	}
 	app.Commands = []cli.Command{
 		{
@@ -338,7 +355,7 @@ func main() {
 
 	err := app.Run(os.Args)
 	if err != nil {
-		panic(err)
+		fmt.Println(err)
 	}
 }
 
@@ -346,18 +363,27 @@ type tableData struct {
 	balances []Balance
 	usd      float64
 	btc      float64
+	errorMsg error
 }
 
 func getTableData() tableData {
 	coins := getCoinsAsync()
 	config := NewFileConfig()
-	providers := initProviders(ActiveProviders, config)
+	providers, err := initProviders(ActiveProviders, config)
+	if err != nil {
+		return tableData{errorMsg: err}
+	}
 	res := getAllBalances(providers, coins)
 	usdSum, btcSum := getAggSum(res)
-	return tableData{res, usdSum, btcSum}
+	return tableData{balances: res, usd: usdSum, btc: btcSum}
 }
 
-func showOverview() {
+func printLogo() {
+	file, _ := ioutil.ReadFile("./assets/cookie.txt")
+	fmt.Println(string(file[:]))
+}
+
+func showOverview() error {
 	ch := make(chan tableData)
 	go func(c chan tableData) {
 		c <- getTableData()
@@ -367,9 +393,12 @@ func showOverview() {
 	res := <-ch
 	close(ch)
 	s.Stop()
-	file, _ := ioutil.ReadFile("./assets/cookie.txt")
-	fmt.Println(string(file[:]))
+	if res.errorMsg != nil {
+		return res.errorMsg
+	}
+	printLogo()
 	renderTable(res.balances, res.btc, res.usd)
+	return nil
 }
 
 func getAllBalances(providers []Provider, coins map[string]Coin) []Balance {
@@ -429,22 +458,26 @@ func toArray(coinMap map[string]Coin) []string {
 	return output
 }
 
-func initProviders(neededProviders []string, config ConfigInterface) []Provider {
+func initProviders(neededProviders []string, config ConfigInterface) ([]Provider, error) {
 	var activeProvider []Provider
 	neededProvidersIDMap := toMap(neededProviders)
 	for _, provider := range Providers {
 		if _, ok := neededProvidersIDMap[provider.id]; ok {
 			// TODO: maybe refactor Provider to Provider / ProviderInited
 			if provider.isValid(config) {
+				instance, err := provider.factory.Get(config)
+				if err != nil {
+					return nil, NewProviderError(err.Error(), provider.id)
+				}
 				activeProvider = append(activeProvider, Provider{
 					id:       provider.id,
 					factory:  provider.factory,
-					instance: provider.factory.Get(config),
+					instance: instance,
 				})
 			}
 		}
 	}
-	return activeProvider
+	return activeProvider, nil
 }
 
 func getCoins(skip int, limit int) map[string]Coin {

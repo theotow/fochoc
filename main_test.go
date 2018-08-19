@@ -46,7 +46,7 @@ func TestRun(t *testing.T) {
 	})
 	Convey("initProviders() should only init valid providers", t, func() {
 		config := Config{}
-		res := initProviders([]string{"binance", "kraken"}, config)
+		res, _ := initProviders([]string{"binance", "kraken"}, config)
 		So(len(res), ShouldEqual, 1)
 		So(res[0].id, ShouldEqual, "kraken")
 	})
@@ -61,7 +61,8 @@ func TestRun(t *testing.T) {
 	})
 	Convey("getCoinsOfProvider() should return coins of provider", t, func() {
 		config := EnvConfig{}
-		instance := NewBinance().Get(&config)
+		instance, err := NewBinance().Get(&config)
+		So(err, ShouldBeNil)
 		instance.AddTestBalance("BTC", 2) // should not show up
 		instance.AddTestBalance("ETH", 2) // should show up
 		provider := Provider{

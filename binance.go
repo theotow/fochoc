@@ -14,17 +14,17 @@ type binance struct {
 }
 type methodsBinance struct{}
 
-func initBinance(c ConfigInterface) *binance {
+func initBinance(c ConfigInterface) (*binance, error) {
 	api := bin.NewClient(c.GetKey("BINANCE_KEY"), c.GetKey("BINANCE_SECRET"))
 	result, err := api.NewGetAccountService().Do(context.Background())
 
 	if err != nil {
-		panic(err)
+		return nil, err
 	}
-	return &binance{ResultRaw: result.Balances}
+	return &binance{ResultRaw: result.Balances}, nil
 }
 
-func (m *methodsBinance) Get(c ConfigInterface) ConfigProviderInterface {
+func (m *methodsBinance) Get(c ConfigInterface) (ConfigProviderInterface, error) {
 	return initBinance(c)
 }
 

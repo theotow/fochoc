@@ -10,17 +10,17 @@ type bittrex struct {
 }
 type methodsBittrex struct{}
 
-func initBittrex(c ConfigInterface) *bittrex {
+func initBittrex(c ConfigInterface) (*bittrex, error) {
 	api := bit.New(c.GetKey("BITTREX_KEY"), c.GetKey("BITTREX_SECRET"))
 	result, err := api.GetBalances()
 
 	if err != nil {
-		panic(err)
+		return nil, err
 	}
-	return &bittrex{ResultRaw: result}
+	return &bittrex{ResultRaw: result}, nil
 }
 
-func (m *methodsBittrex) Get(c ConfigInterface) ConfigProviderInterface {
+func (m *methodsBittrex) Get(c ConfigInterface) (ConfigProviderInterface, error) {
 	return initBittrex(c)
 }
 

@@ -13,17 +13,17 @@ type poloniex struct {
 }
 type methodsPoloniex struct{}
 
-func initPoloniex(c ConfigInterface) *poloniex {
+func initPoloniex(c ConfigInterface) (*poloniex, error) {
 	api := polo.New(c.GetKey("POLONIEX_KEY"), c.GetKey("POLONIEX_SECRET"))
 	result, err := api.GetBalances()
 
 	if err != nil {
-		panic(err)
+		return nil, err
 	}
-	return &poloniex{ResultRaw: result}
+	return &poloniex{ResultRaw: result}, nil
 }
 
-func (m *methodsPoloniex) Get(c ConfigInterface) ConfigProviderInterface {
+func (m *methodsPoloniex) Get(c ConfigInterface) (ConfigProviderInterface, error) {
 	return initPoloniex(c)
 }
 

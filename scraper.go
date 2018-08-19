@@ -41,7 +41,10 @@ func GetER20Tokens(address string) map[string]float64 {
 		html = strings.Replace(html, ",", "", -1)
 		result := getParams(`(?P<Value>[0-9\.]{0,40})\sEther`, html)
 		if reflect.TypeOf(result["Value"]).String() == "string" && len(result["Value"]) > 0 {
-			output["ETH"], _ = strconv.ParseFloat(result["Value"], 64)
+			res, err := strconv.ParseFloat(result["Value"], 64)
+			if err == nil && res > 0 {
+				output["ETH"] = res
+			}
 		}
 	})
 

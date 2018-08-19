@@ -15,4 +15,8 @@ func TestScraper(t *testing.T) {
 		So(res["TRX"], ShouldEqual, 42)
 		So(len(res), ShouldBeGreaterThan, 8)
 	})
+	Convey("getER20Tokens() should return empty map if address invalid", t, func() {
+		res := GetER20Tokens("0xAd3cbAA752C8a5267785992Cf47723b992B33dD232233")
+		So(len(res), ShouldEqual, 0)
+	})
 }

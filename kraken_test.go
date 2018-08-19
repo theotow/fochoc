@@ -11,10 +11,11 @@ var instance = NewKraken()
 
 func TestKraken(t *testing.T) {
 	Convey("should not crash", t, func() {
-		instance.Get(&config)
+		_, err := instance.Get(&config)
+		So(err, ShouldBeNil)
 	})
 	Convey("should be able to get key", t, func() {
-		res := instance.Get(&config)
+		res, _ := instance.Get(&config)
 		res.AddTestBalance("ETH", 0.1)
 		result := res.GetCurrencyValue("ETH")
 		So(result, ShouldEqual, 0.1)
@@ -23,7 +24,7 @@ func TestKraken(t *testing.T) {
 		So(notexisting, ShouldEqual, 0.0)
 	})
 	Convey("should be able to get all", t, func() {
-		i := instance.Get(&config)
+		i, _ := instance.Get(&config)
 		i.AddTestBalance("ETH", 1.11)
 		res := i.GetAll([]string{"ETH"})
 		So(len(res), ShouldEqual, 1)

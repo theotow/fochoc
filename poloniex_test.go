@@ -11,10 +11,11 @@ var pInstance = NewPoloniex()
 
 func TestPoloniex(t *testing.T) {
 	Convey("should not crash", t, func() {
-		pInstance.Get(&pConfig)
+		_, err := pInstance.Get(&pConfig)
+		So(err, ShouldBeNil)
 	})
 	Convey("should be able to get key", t, func() {
-		i := pInstance.Get(&pConfig)
+		i, _ := pInstance.Get(&pConfig)
 		i.AddTestBalance("ETH", 0.1)
 		result := i.GetCurrencyValue("ETH")
 		So(result, ShouldEqual, 0.1)
@@ -23,7 +24,7 @@ func TestPoloniex(t *testing.T) {
 		So(notexisting, ShouldEqual, 0.0)
 	})
 	Convey("should be able to get all", t, func() {
-		i := pInstance.Get(&pConfig)
+		i, _ := pInstance.Get(&pConfig)
 		i.AddTestBalance("ETH", 1.11)
 		res := i.GetAll([]string{"ETH"})
 		So(len(res), ShouldEqual, 1)
