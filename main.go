@@ -18,7 +18,7 @@ import (
 
 const CoinList = "https://api.coinmarketcap.com/v2/ticker/"
 const AppName = "fochoc"
-const AppVersion = "0.0.1"
+const AppVersion = "0.0.2"
 
 var Providers = []Provider{
 	{id: "binance", factory: NewBinance()},
