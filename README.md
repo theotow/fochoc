@@ -15,7 +15,8 @@
 - bittrex
 
 ## Supported Coins / Tokens
-- https://api.coinmarketcap.com/v2/listings/
+- https://api.coinmarketcap.com/v2/listings/ (kraken, poloniex, binance, bittrex)
+- ERC-20 coin names with 3 digits listed on coinmarketcap
 
 ## Platform Support
 
@@ -25,7 +26,7 @@
 
 ## Planned Features
 
-- [ ] Improve error reporting
+- [x] Improve error reporting
 - [x] Add ERC-20 token support
 - [x] Add Bittrex exchange
 - [x] Improve test coverage
@@ -36,4 +37,5 @@
 - Group By exchange / address / etc.
 - Order by
 - Support for more currencies
+- Faster
 
