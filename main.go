@@ -16,10 +16,16 @@ import (
 	"github.com/levigross/grequests"
 )
 
+// CoinList is the api endpoints to fetch the coins
 const CoinList = "https://api.coinmarketcap.com/v2/ticker/"
-const AppName = "fochoc"
-const AppVersion = "0.0.2"
 
+// AppName is the name if the binary on the end users machine
+const AppName = "fochoc"
+
+// AppVersion is the version of the current app
+const AppVersion = "0.0.5"
+
+// Providers is an array of available providers
 var Providers = []Provider{
 	{id: "binance", factory: NewBinance()},
 	{id: "kraken", factory: NewKraken()},
@@ -28,6 +34,7 @@ var Providers = []Provider{
 	{id: "erc20", factory: NewEcr20()},
 }
 
+// ActiveProviders is a list of all active provider ids
 var ActiveProviders = []string{
 	"binance",
 	"kraken",
@@ -36,6 +43,7 @@ var ActiveProviders = []string{
 	"erc20",
 }
 
+// ActiveExchangeProviders is a list of all active exchange provider ids
 var ActiveExchangeProviders = []string{
 	"binance",
 	"kraken",
@@ -43,17 +51,20 @@ var ActiveExchangeProviders = []string{
 	"bittrex",
 }
 
+// ProviderInterface the interface of a provider factory
 type ProviderInterface interface {
 	Get(c ConfigInterface) (ConfigProviderInterface, error)
 	ConfigKeys() []string
 }
 
+// Provider is a struct which describes a provider with its id, maybe instance, factory
 type Provider struct {
 	instance ConfigProviderInterface
 	factory  ProviderInterface
 	id       string
 }
 
+// ProviderError contains meta data and error message to return to enduser
 type ProviderError struct {
 	errorMsg   string
 	providerID string
@@ -63,6 +74,7 @@ func (e *ProviderError) Error() string {
 	return "provider(" + e.providerID + ") could not be initialized, maybe the key/secret is invalid, to edit config visit ~/.fochocconfig.json, error: " + e.errorMsg
 }
 
+// NewProviderError returns a Provider Error which contains meta data and error message to return to enduser
 func NewProviderError(err string, id string) *ProviderError {
 	return &ProviderError{errorMsg: err, providerID: id}
 }
@@ -89,10 +101,11 @@ func (p *Provider) getCoinsOfProvider(coinMap map[string]Coin) []Balance {
 	return output
 }
 
-type CoinListResponse struct {
+type coinListResponse struct {
 	Data map[string]Coin `json:"data"`
 }
 
+// Coin contains meta data like price usd... for a certain coin
 type Coin struct {
 	Id       int                           `json:"id"`
 	Name     string                        `json:"name"`
@@ -205,7 +218,7 @@ func (q *questions) Main() {
 			Validate: survey.Required,
 			Prompt: &survey.Select{
 				Message: "What you want to do:",
-				Options: []string{"Add Exchange", "Add ERC20 Adress", "Reset Config"},
+				Options: []string{"Add Exchange", "Add ERC20 Address", "Reset Config"},
 				Default: "Add Exchange",
 			},
 		},
@@ -303,7 +316,7 @@ func (q *questions) Logic() {
 		}
 		return
 	}
-	if q.getKeySafe("what") == "Add ERC20 Adress" {
+	if q.getKeySafe("what") == "Add ERC20 Address" {
 		q.AddErc20()
 		config := NewFileConfig()
 		configMap := config.Read()
@@ -485,7 +498,7 @@ func getCoins(skip int, limit int) map[string]Coin {
 	if err != nil {
 		panic(errors.New("request failed"))
 	}
-	var coinRes CoinListResponse
+	var coinRes coinListResponse
 	err = resp.JSON(&coinRes)
 	if err != nil {
 		panic(errors.New("request decode failed"))

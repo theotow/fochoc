@@ -39,6 +39,7 @@ func (m *methodsEcr20) ConfigKeys() []string {
 	return []string{}
 }
 
+// NewEcr20 returns a new erc20 provider
 func NewEcr20() *methodsEcr20 {
 	return &methodsEcr20{}
 }

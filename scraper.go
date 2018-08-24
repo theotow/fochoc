@@ -23,6 +23,7 @@ func getParams(regEx, url string) (paramsMap map[string]string) {
 	return
 }
 
+// GetER20Tokens returns eth balance + erc20 balances
 func GetER20Tokens(address string) map[string]float64 {
 	var output = make(map[string]float64)
 	c := colly.NewCollector()

@@ -12,13 +12,8 @@ type Config struct{}
 func (c Config) GetKey(name string) string {
 	if name == "KRAKEN_KEY" || name == "KRAKEN_SECRET" {
 		return os.Getenv(name)
-	} else {
-		return ""
 	}
-}
-
-func (c Config) Initialised() bool {
-	return true
+	return ""
 }
 
 func (c Config) GetTokens() []Token {
