@@ -1,23 +1,15 @@
 package main
 
 import (
-	"errors"
 	"fmt"
 	"io/ioutil"
 	"os"
-	"strconv"
 	"time"
 
 	"github.com/briandowns/spinner"
 	"github.com/olekukonko/tablewriter"
-	survey "gopkg.in/AlecAivazis/survey.v1"
 	cli "gopkg.in/urfave/cli.v1"
-
-	"github.com/levigross/grequests"
 )
-
-// CoinList is the api endpoints to fetch the coins
-const CoinList = "https://api.coinmarketcap.com/v2/ticker/"
 
 // AppName is the name if the binary on the end users machine
 const AppName = "fochoc"
@@ -31,7 +23,7 @@ var Providers = []Provider{
 	{id: "kraken", factory: NewKraken()},
 	{id: "poloniex", factory: NewPoloniex()},
 	{id: "bittrex", factory: NewBittrex()},
-	{id: "erc20", factory: NewEcr20()},
+	{id: "coldwallet", factory: NewColdWallet()},
 }
 
 // ActiveProviders is a list of all active provider ids
@@ -40,7 +32,7 @@ var ActiveProviders = []string{
 	"kraken",
 	"poloniex",
 	"bittrex",
-	"erc20",
+	"coldwallet",
 }
 
 // ActiveExchangeProviders is a list of all active exchange provider ids
@@ -99,10 +91,6 @@ func (p *Provider) getCoinsOfProvider(coinMap map[string]Coin) []Balance {
 		}
 	}
 	return output
-}
-
-type coinListResponse struct {
-	Data map[string]Coin `json:"data"`
 }
 
 // Coin contains meta data like price usd... for a certain coin
@@ -201,146 +189,6 @@ func (b *Balance) getBtcBalanceString() string {
 	return fmt.Sprintf("%f", b.getBtcBalance())
 }
 
-type questions struct {
-	answers map[string]interface{}
-}
-
-func startQuestions() *questions {
-	return &questions{
-		answers: make(map[string]interface{}),
-	}
-}
-
-func (q *questions) Main() {
-	survey.Ask([]*survey.Question{
-		{
-			Name:     "what",
-			Validate: survey.Required,
-			Prompt: &survey.Select{
-				Message: "What you want to do:",
-				Options: []string{"Add Exchange", "Add ERC20 Address", "Reset Config"},
-				Default: "Add Exchange",
-			},
-		},
-	}, &q.answers)
-	q.Logic()
-}
-
-func (q *questions) Exchange() {
-	survey.Ask([]*survey.Question{
-		{
-			Name:     "exchange",
-			Validate: survey.Required,
-			Prompt: &survey.Select{
-				Message: "Which:",
-				Options: ActiveExchangeProviders,
-				Default: ActiveExchangeProviders[0],
-			},
-		},
-	}, &q.answers)
-}
-
-func (q *questions) ExchangeCreds(settings []string) {
-	questions := []*survey.Question{}
-	for _, settingName := range settings {
-		questions = append(questions, &survey.Question{
-			Name:     settingName,
-			Prompt:   &survey.Input{Message: settingName},
-			Validate: survey.Required,
-		})
-	}
-	survey.Ask(questions, &q.answers)
-}
-
-func (q *questions) AddErc20() {
-	survey.Ask([]*survey.Question{
-		{
-			Name:     "address",
-			Prompt:   &survey.Input{Message: "Address"},
-			Validate: survey.Required,
-		},
-		{
-			Name:   "comment",
-			Prompt: &survey.Input{Message: "Comment"},
-		},
-	}, &q.answers)
-}
-
-func (q *questions) AreYouSure() {
-	survey.Ask([]*survey.Question{
-		{
-			Name: "reset",
-			Prompt: &survey.Select{
-				Message: "Are you really sure?:",
-				Options: []string{"yes", "no"},
-				Default: "no",
-			},
-			Validate: survey.Required,
-		},
-	}, &q.answers)
-	q.Logic()
-}
-
-func (q *questions) getKeySafe(key string) interface{} {
-	if val, ok := q.answers[key]; ok {
-		return val
-	}
-	return ""
-}
-
-func getConfigKeysOfProviderByID(id string) []string {
-	for _, provider := range Providers {
-		if provider.id == id {
-			return provider.factory.ConfigKeys()
-		}
-	}
-	return []string{}
-}
-
-func (q *questions) Logic() {
-	if q.getKeySafe("what") == "Add Exchange" {
-		q.Exchange()
-		for _, exchange := range ActiveExchangeProviders {
-			if q.getKeySafe("exchange") == exchange {
-				configKeys := getConfigKeysOfProviderByID(exchange)
-				q.ExchangeCreds(configKeys)
-				config := NewFileConfig()
-				configMap := config.Read()
-				// write to config (merge)
-				for _, name := range configKeys {
-					configMap.addKey(name, fmt.Sprint(q.getKeySafe(name)))
-				}
-				config.Write(configMap)
-				fmt.Println("Done!")
-			}
-		}
-		return
-	}
-	if q.getKeySafe("what") == "Add ERC20 Address" {
-		q.AddErc20()
-		config := NewFileConfig()
-		configMap := config.Read()
-		configMap.addErc20(Token{
-			Address: fmt.Sprint(q.getKeySafe("address")),
-			Comment: fmt.Sprint(q.getKeySafe("comment")),
-		})
-		config.Write(configMap)
-		fmt.Println("Done!")
-		return
-	}
-	if q.getKeySafe("what") == "Reset Config" {
-		if q.getKeySafe("reset") == "" {
-			q.AreYouSure()
-		} else if q.getKeySafe("reset") == "yes" {
-			config := NewFileConfig()
-			config.Write(config.GetEmptyConfig())
-			fmt.Println("Done!")
-		}
-		return
-	}
-
-}
-
 func main() {
 	defer func() {
 		if r := recover(); r != nil {
@@ -401,7 +249,7 @@ func showOverview() error {
 	go func(c chan tableData) {
 		c <- getTableData()
 	}(ch)
-	s := spinner.New(spinner.CharSets[9], 100*time.Millisecond) // Build our new spinner
+	s := spinner.New(spinner.CharSets[9], 100*time.Millisecond)
 	s.Start()
 	res := <-ch
 	close(ch)
@@ -491,56 +339,4 @@ func initProviders(neededProviders []string, config ConfigInterface) ([]Provider
 		}
 	}
 	return activeProvider, nil
-}
-
-func getCoins(skip int, limit int) map[string]Coin {
-	resp, err := grequests.Get(CoinList+"?convert=BTC&sort=id&start="+strconv.Itoa(skip)+"&limit="+strconv.Itoa(limit), nil)
-	if err != nil {
-		panic(errors.New("request failed"))
-	}
-	var coinRes coinListResponse
-	err = resp.JSON(&coinRes)
-	if err != nil {
-		panic(errors.New("request decode failed"))
-	}
-	output := make(map[string]Coin)
-	for _, coin := range coinRes.Data {
-		output[coin.Symbol] = Coin{
-			Id:       coin.Id,
-			Name:     coin.Name,
-			Symbol:   coin.Symbol,
-			Quote:    coin.Quote,
-			BtcPrice: coin.Quote["BTC"]["price"], // TODO: find safer way
-			UsdPrice: coin.Quote["USD"]["price"], // TODO: find safer way
-		}
-	}
-	return output
-}
-
-func getCoinsAsync() map[string]Coin {
-	ch := make(chan map[string]Coin)
-	output := make(map[string]Coin)
-	limit := 100       // coins fetched per request
-	totalLimit := 2000 // max coins fetched in total
-	sendCount := 0
-	receivedCount := 0
-	for i := 0; i < totalLimit; {
-		go func(skip int) {
-			ch <- getCoins(skip+1, limit)
-		}(i)
-		sendCount++
-		i += limit
-	}
-	for {
-		res, _ := <-ch
-		receivedCount++
-		for k, v := range res {
-			output[k] = v
-		}
-		if sendCount == receivedCount {
-			close(ch)
-			break
-		}
-	}
-	return output
 }

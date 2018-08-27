@@ -16,29 +16,11 @@ func (c Config) GetKey(name string) string {
 	return ""
 }
 
-func (c Config) GetTokens() []Token {
-	return []Token{}
+func (c Config) GetColdWalletCoins() []ColdWalletCoin {
+	return []ColdWalletCoin{}
 }
 
 func TestRun(t *testing.T) {
-	Convey("getCoins() should execute without error", t, func() {
-		res := getCoins(1, 100)
-		if res["BTC"].Symbol != "BTC" {
-			t.Error("btc not found")
-		}
-		if res["BTC"].BtcPrice != 1 {
-			t.Error("btc price should be 1")
-		}
-		if res["BTC"].UsdPrice <= 0 {
-			t.Error("usd price should be > 0")
-		}
-	})
-	Convey("getCoinsAsync() should execute without error", t, func() {
-		res := getCoinsAsync()
-		So(res["BTC"].Symbol, ShouldEqual, "BTC")
-		So(res["BTC"].BtcPrice, ShouldEqual, 1)
-		So(res["BTC"].UsdPrice, ShouldBeGreaterThan, 1000)
-	})
 	Convey("initProviders() should only init valid providers", t, func() {
 		config := Config{}
 		res, _ := initProviders([]string{"binance", "kraken"}, config)

@@ -29,9 +29,7 @@ func TestConfig(t *testing.T) {
 	})
 	Convey("should read / write config", t, func() {
 		tmpfile, err := ioutil.TempFile("", "example")
-		if err != nil {
-			panic(err)
-		}
+		So(err, ShouldBeNil)
 		path := tmpfile.Name()
 		defer os.Remove(path)
 		input := ConfigFileStruct{
@@ -44,5 +42,16 @@ func TestConfig(t *testing.T) {
 		writeFile(path, output)
 		So(output.Keys, ShouldContainKey, "a")
 		So(output.Keys["a"], ShouldEqual, "b")
+	})
+	Convey("GetColdWalletCoins() should return cold wallet coins", t, func() {
+		c := EnvConfig{}
+		res := c.GetColdWalletCoins()
+		So(len(res), ShouldEqual, 1)
+		So(res[0].Currency, ShouldEqual, "ETH")
+	})
+	Convey("GetKey() should return value of env var", t, func() {
+		c := EnvConfig{}
+		res := c.GetKey("KRAKEN_KEY")
+		So(res, ShouldEqual, os.Getenv("KRAKEN_KEY"))
 	})
 }

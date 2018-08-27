@@ -23,16 +23,17 @@ type FileConfig struct {
 	config ConfigFileStruct
 }
 
-// Token describes a erc20 token
-type Token struct {
-	Comment string
-	Address string
+// ColdWalletCoin - describes a coin with an address and comment
+type ColdWalletCoin struct {
+	Comment  string
+	Address  string
+	Currency string
 }
 
 // ConfigFileStruct describes the json config file structure
 type ConfigFileStruct struct {
-	Keys        map[string]string `json:"keys"`
-	Erc20Tokens []Token           `json:"erc20Tokens"`
+	Keys            map[string]string `json:"keys"`
+	ColdWalletCoins []ColdWalletCoin  `json:"coins"`
 }
 
 func (c *ConfigFileStruct) addKey(key string, value string) {
@@ -42,17 +43,17 @@ func (c *ConfigFileStruct) addKey(key string, value string) {
 	c.Keys[key] = value
 }
 
-func (c *ConfigFileStruct) addErc20(token Token) {
-	if c.Erc20Tokens == nil {
-		c.Erc20Tokens = []Token{}
+func (c *ConfigFileStruct) addColdWalletCoin(coin ColdWalletCoin) {
+	if c.ColdWalletCoins == nil {
+		c.ColdWalletCoins = []ColdWalletCoin{}
 	}
-	c.Erc20Tokens = append(c.Erc20Tokens, token)
+	c.ColdWalletCoins = append(c.ColdWalletCoins, coin)
 }
 
 // ConfigInterface describes the interface a config needs to have
 type ConfigInterface interface {
 	GetKey(name string) string
-	GetTokens() []Token
+	GetColdWalletCoins() []ColdWalletCoin
 }
 
 // ConfigProviderInterface describes the interface a a provider needs to have
@@ -78,10 +79,10 @@ func (c *EnvConfig) GetKey(name string) string {
 	return os.Getenv(name)
 }
 
-// GetTokens returns an array of Erc20 tokens
-func (c *EnvConfig) GetTokens() []Token {
-	return []Token{
-		{Address: "0xf27d22d64e625c2a34e31369d9b88828146df52b", Comment: "comment"},
+// GetColdWalletCoins returns an array of cold wallet coins
+func (c *EnvConfig) GetColdWalletCoins() []ColdWalletCoin {
+	return []ColdWalletCoin{
+		{Address: "0xf27d22d64e625c2a34e31369d9b88828146df52b", Comment: "comment", Currency: "ETH"},
 	}
 }
 
@@ -108,9 +109,9 @@ func (c *FileConfig) GetEmptyConfig() ConfigFileStruct {
 	return ConfigFileStruct{}
 }
 
-// GetTokens returns an array of Erc20 tokens
-func (c *FileConfig) GetTokens() []Token {
-	return c.config.Erc20Tokens
+// GetColdWalletCoins returns an array of cold wallet coins
+func (c *FileConfig) GetColdWalletCoins() []ColdWalletCoin {
+	return c.config.ColdWalletCoins
 }
 
 // TODO: put in main.go

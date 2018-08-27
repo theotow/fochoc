@@ -17,6 +17,7 @@
 ## Supported Coins / Tokens
 - https://api.coinmarketcap.com/v2/listings/ (kraken, poloniex, binance, bittrex)
 - ERC-20 coin names with 3 digits listed on coinmarketcap
+- Coldwallet Coins (BTC, LTC, DASH, STRAT, LUX, DGB, XZC, VIA, VTC, ETH), more on request
 
 ## Platform Support
 
@@ -30,6 +31,7 @@
 - [x] Add ERC-20 token support
 - [x] Add Bittrex exchange
 - [x] Improve test coverage
+- [x] Coldwallet coins
 
 ## Ideas
 
