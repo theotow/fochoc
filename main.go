@@ -8,6 +8,7 @@ import (
 
 	"github.com/briandowns/spinner"
 	"github.com/olekukonko/tablewriter"
+	"go.uber.org/zap"
 	cli "gopkg.in/urfave/cli.v1"
 )
 
@@ -25,6 +26,8 @@ var Providers = []Provider{
 	{id: "bittrex", factory: NewBittrex()},
 	{id: "coldwallet", factory: NewColdWallet()},
 }
+
+var logger *zap.Logger
 
 // ActiveProviders is a list of all active provider ids
 var ActiveProviders = []string{
@@ -189,18 +192,29 @@ func (b *Balance) getBtcBalanceString() string {
 	return fmt.Sprintf("%f", b.getBtcBalance())
 }
 
+func initLogger(isDev bool) {
+	if isDev {
+		logger, _ = zap.NewDevelopment()
+	} else {
+		logger, _ = zap.NewProduction()
+	}
+	logger.Debug("start")
+}
+
 func main() {
 	defer func() {
 		if r := recover(); r != nil {
 			fmt.Println("I crashed, im so so sorry")
 		}
 	}()
+
 	app := cli.NewApp()
 	app.Name = AppName
 	app.Usage = "how to run this"
 	app.Version = AppVersion
 	app.Action = func(c *cli.Context) error {
-		return showOverview()
+		initLogger(false)
+		return showOverview(false)
 	}
 	app.Commands = []cli.Command{
 		{
@@ -210,6 +224,15 @@ func main() {
 			Action: func(c *cli.Context) error {
 				startQuestions().Main()
 				return nil
+			},
+		},
+		{
+			Name:    "debug",
+			Aliases: []string{"d"},
+			Usage:   "Run in debug mode",
+			Action: func(c *cli.Context) error {
+				initLogger(true)
+				return showOverview(true)
 			},
 		},
 	}
@@ -244,16 +267,21 @@ func printLogo() {
 	fmt.Println(string(file[:]))
 }
 
-func showOverview() error {
+func showOverview(isDebug bool) error {
 	ch := make(chan tableData)
 	go func(c chan tableData) {
 		c <- getTableData()
 	}(ch)
-	s := spinner.New(spinner.CharSets[9], 100*time.Millisecond)
-	s.Start()
+	var s *spinner.Spinner
+	if !isDebug {
+		s = spinner.New(spinner.CharSets[9], 100*time.Millisecond)
+		s.Start()
+	}
 	res := <-ch
 	close(ch)
-	s.Stop()
+	if !isDebug {
+		s.Stop()
+	}
 	if res.errorMsg != nil {
 		return res.errorMsg
 	}
@@ -327,6 +355,7 @@ func initProviders(neededProviders []string, config ConfigInterface) ([]Provider
 			// TODO: maybe refactor Provider to Provider / ProviderInited
 			if provider.isValid(config) {
 				instance, err := provider.factory.Get(config)
+				logger.Debug("initiated provider", zap.String("providerId", provider.id))
 				if err != nil {
 					return nil, NewProviderError(err.Error(), provider.id)
 				}

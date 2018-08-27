@@ -9,6 +9,7 @@ import (
 
 	"github.com/gocolly/colly"
 	"github.com/levigross/grequests"
+	"go.uber.org/zap"
 )
 
 var coinToResolverMapping = map[string]func(coinUppercase string, address string) (map[string]float64, error){
@@ -119,6 +120,7 @@ func getER20Tokens(coinUppercase string, address string) (map[string]float64, er
 
 	c.Visit("https://etherscan.io/address/" + address)
 
+	logger.Debug("fetched coin erc20", zap.Int("coins", len(output)))
 	if len(output) == 0 {
 		return output, errors.New("erc20-address: " + address + " didnt yield anything")
 	}
@@ -162,6 +164,7 @@ func getBalanceChainz(coinUppercase string, address string) (map[string]float64,
 		return output, errors.New("parse float blanace of " + coinUppercase + " failed")
 	}
 	output[coinUppercase] = val
+	logger.Debug("fetched coin balance chainz", zap.String("coin", coinUppercase), zap.Float64("balance", val))
 	return output, nil
 }
 
@@ -186,6 +189,10 @@ func asyncRun(workload []AsyncTask, workerCount int) []AsyncTask {
 	inQueue := make(chan AsyncTask, len(workload))
 	outQueue := make(chan AsyncTask, len(workload))
 	done := []AsyncTask{}
+	if len(workload) == 0 {
+		return []AsyncTask{}
+	}
+
 	// workers
 	for i := 0; i < workerCount; i++ {
 		go func(workerId int) {
@@ -229,7 +236,9 @@ func getCoinsAsync() map[string]Coin {
 		if ok != true {
 			return nil, errors.New("not int type")
 		}
-		return getCoins(skip, limit), nil
+		res := getCoins(skip, limit)
+		logger.Debug("fetched coin infos", zap.Int("skip", skip))
+		return res, nil
 	}
 	// wrap
 	for i := 0; i < totalLimit; {

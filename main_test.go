@@ -21,6 +21,7 @@ func (c Config) GetColdWalletCoins() []ColdWalletCoin {
 }
 
 func TestRun(t *testing.T) {
+	initLogger(true)
 	Convey("initProviders() should only init valid providers", t, func() {
 		config := Config{}
 		res, _ := initProviders([]string{"binance", "kraken"}, config)

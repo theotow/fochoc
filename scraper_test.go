@@ -21,6 +21,7 @@ var handler = func(input interface{}) (interface{}, error) {
 }
 
 func TestScraper(t *testing.T) {
+	initLogger(true)
 	Convey("getER20Tokens() should execute without error", t, func() {
 		res, _ := getER20Tokens("ETH", EthAddress)
 		So(res["ETH"], ShouldEqual, 10430.564501815777)
@@ -83,6 +84,10 @@ func TestScraper(t *testing.T) {
 			},
 		}, 10)
 		So(res1[0].error.Error(), ShouldEqual, "handler error")
+
+		// empty case
+		res2 := asyncRun([]AsyncTask{}, 10)
+		So(len(res2), ShouldEqual, 0)
 	})
 	Convey("resolveCoins() should run without error", t, func() {
 		array := []BalanceSimple{
