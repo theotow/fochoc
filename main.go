@@ -16,7 +16,7 @@ import (
 const AppName = "fochoc"
 
 // AppVersion is the version of the current app
-const AppVersion = "0.0.6"
+const AppVersion = "0.0.7"
 
 // Providers is an array of available providers
 var Providers = []Provider{
