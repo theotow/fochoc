@@ -94,8 +94,23 @@ func getParams(regEx, url string) (paramsMap map[string]string) {
 	return
 }
 
+func getBalanceEtc(coin string, address string) (map[string]float64, error) {
+	output := make(map[string]float64)
+	c := colly.NewCollector()
+
+	c.OnHTML(".addr-details .dl-horizontal", func(e *colly.HTMLElement) {
+		txt := e.DOM.Text()
+		params := getParams(`(?P<Value>[0-9\.]{0,40})\sEther`, txt)
+		if len(params) == 1 {
+			output[coin], _ = strconv.ParseFloat(params["Value"], 64)
+		}
+	})
+	c.Visit("https://gastracker.io/addr/" + address)
+	return output, nil
+}
+
 func getER20Tokens(coinUppercase string, address string) (map[string]float64, error) {
-	var output = make(map[string]float64)
+	output := make(map[string]float64)
 	c := colly.NewCollector()
 
 	c.OnHTML("#balancelist a", func(e *colly.HTMLElement) {
