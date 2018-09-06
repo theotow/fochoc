@@ -49,7 +49,7 @@ func TestScraper(t *testing.T) {
 	})
 	Convey("getBalanceChainz() should execute without error", t, func() {
 		res, _ := getBalanceChainz("BTC", BtcAddress)
-		So(res["BTC"], ShouldEqual, 0.02014168)
+		So(res["BTC"], ShouldEqual, 0.00996768)
 	})
 	Convey("getBalanceChainz() should execute have error", t, func() {
 		_, err := getBalanceChainz("BTCCC", BtcAddress)
@@ -106,6 +106,6 @@ func TestScraper(t *testing.T) {
 			mappedData[val.Currency] = val
 		}
 		So(mappedData["ETH"].Balance, ShouldEqual, 10430.564501815777)
-		So(mappedData["BTC"].Balance, ShouldEqual, 0.02014168)
+		So(mappedData["BTC"].Balance, ShouldEqual, 0.00996768)
 	})
 }
