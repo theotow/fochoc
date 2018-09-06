@@ -23,6 +23,7 @@ var coinToResolverMapping = map[string]func(coinUppercase string, address string
 	"VIA":   getBalanceChainz,
 	"VTC":   getBalanceChainz,
 	"ETH":   getER20Tokens,
+	"LSK":   getBalanceLisk,
 }
 
 func getCoinMappingToArray() []string {
@@ -165,6 +166,24 @@ func getBalanceChainz(coinUppercase string, address string) (map[string]float64,
 	}
 	output[coinUppercase] = val
 	logger.Debug("fetched coin balance chainz", zap.String("coin", coinUppercase), zap.Float64("balance", val))
+	return output, nil
+}
+
+func getBalanceLisk(coin string, address string) (map[string]float64, error) {
+	output := make(map[string]float64)
+	resp, err := grequests.Get("https://explorer.lisk.io/api/getAccount?address="+address, nil)
+	if err != nil {
+		return nil, errors.New("request failed to fetch balance of " + coin + " failed")
+	}
+	data := struct {
+		Balance string `json:"balance"`
+	}{}
+	resp.JSON(&data)
+	balanceFloat, err := strconv.ParseFloat(data.Balance, 64)
+	output[coin] = balanceFloat / 100000000
+	if err != nil {
+		return nil, errors.New("int parse failed for " + coin)
+	}
 	return output, nil
 }
 
