@@ -118,4 +118,9 @@ func TestScraper(t *testing.T) {
 		So(err, ShouldBeNil)
 		So(res["ETC"], ShouldEqual, 2599.3098)
 	})
+	Convey("getBalanceNeo() should get neo balance", t, func() {
+		res, err := getBalanceNeo("NEO", "AaZiNiSmSHpZmUEK5PR7uXVSZWbFd5wfkb")
+		So(err, ShouldBeNil)
+		So(res["NEO"], ShouldEqual, 158)
+	})
 }

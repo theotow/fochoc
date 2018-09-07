@@ -109,6 +109,21 @@ func getBalanceEtc(coin string, address string) (map[string]float64, error) {
 	return output, nil
 }
 
+func getBalanceNeo(coin string, address string) (map[string]float64, error) {
+	output := make(map[string]float64)
+	c := colly.NewCollector()
+
+	c.OnHTML("#wallet-graph", func(e *colly.HTMLElement) {
+		txt, _ := e.DOM.Find(".individual-wallet-box:nth-child(1)").Html()
+		params := getParams(`\>(?P<Value>[0-9\.]{0,40})<\/p\>`, txt)
+		if len(params) == 1 {
+			output[coin], _ = strconv.ParseFloat(params["Value"], 64)
+		}
+	})
+	c.Visit("https://neoscan.io/address/" + address)
+	return output, nil
+}
+
 func getER20Tokens(coinUppercase string, address string) (map[string]float64, error) {
 	output := make(map[string]float64)
 	c := colly.NewCollector()
