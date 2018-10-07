@@ -49,7 +49,7 @@ func TestScraper(t *testing.T) {
 	})
 	Convey("getBalanceChainz() should execute without error", t, func() {
 		res, _ := getBalanceChainz("BTC", BtcAddress)
-		So(res["BTC"], ShouldEqual, 0.00996768)
+		So(res["BTC"], ShouldEqual, 0)
 	})
 	Convey("getBalanceChainz() should execute have error", t, func() {
 		_, err := getBalanceChainz("BTCCC", BtcAddress)
@@ -106,17 +106,17 @@ func TestScraper(t *testing.T) {
 			mappedData[val.Currency] = val
 		}
 		So(mappedData["ETH"].Balance, ShouldEqual, 10430.564501815777)
-		So(mappedData["BTC"].Balance, ShouldEqual, 0.00996768)
+		So(mappedData["BTC"].Balance, ShouldEqual, 0)
 	})
 	Convey("getBalanceLisk() should get lisk balance", t, func() {
 		res, err := getBalanceLisk("LSK", "6557304785210489363L")
 		So(err, ShouldBeNil)
-		So(res["LSK"], ShouldEqual, 200.908)
+		So(res["LSK"], ShouldEqual, 0)
 	})
 	Convey("getBalanceEtc() should get etc balance", t, func() {
 		res, err := getBalanceEtc("ETC", "0xb09ca4047ec095fb1dd6c8f916789056fed02615")
 		So(err, ShouldBeNil)
-		So(res["ETC"], ShouldEqual, 2599.3098)
+		So(res["ETC"], ShouldEqual, 3016.3069)
 	})
 	Convey("getBalanceNeo() should get neo balance", t, func() {
 		res, err := getBalanceNeo("NEO", "AaZiNiSmSHpZmUEK5PR7uXVSZWbFd5wfkb")

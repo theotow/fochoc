@@ -24,6 +24,8 @@ var coinToResolverMapping = map[string]func(coinUppercase string, address string
 	"VTC":   getBalanceChainz,
 	"ETH":   getER20Tokens,
 	"LSK":   getBalanceLisk,
+	"NEO":   getBalanceNeo,
+	"ETC":   getBalanceEtc,
 }
 
 func getCoinMappingToArray() []string {
