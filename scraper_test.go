@@ -116,7 +116,7 @@ func TestScraper(t *testing.T) {
 	Convey("getBalanceEtc() should get etc balance", t, func() {
 		res, err := getBalanceEtc("ETC", "0xb09ca4047ec095fb1dd6c8f916789056fed02615")
 		So(err, ShouldBeNil)
-		So(res["ETC"], ShouldEqual, 3016.3069)
+		So(res["ETC"], ShouldEqual, 4314.6291)
 	})
 	Convey("getBalanceNeo() should get neo balance", t, func() {
 		res, err := getBalanceNeo("NEO", "AaZiNiSmSHpZmUEK5PR7uXVSZWbFd5wfkb")
