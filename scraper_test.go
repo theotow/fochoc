@@ -24,7 +24,7 @@ func TestScraper(t *testing.T) {
 	initLogger(true)
 	Convey("getER20Tokens() should execute without error", t, func() {
 		res, _ := getER20Tokens("ETH", EthAddress)
-		So(res["ETH"], ShouldEqual, 10430.564501815777)
+		So(res["ETH"], ShouldEqual, 11060.564392615777)
 		So(res["LRC"], ShouldEqual, 5)
 		So(res["EMO"], ShouldEqual, 9063.343162)
 		So(res["TRX"], ShouldEqual, 42)
@@ -105,7 +105,7 @@ func TestScraper(t *testing.T) {
 		for _, val := range res {
 			mappedData[val.Currency] = val
 		}
-		So(mappedData["ETH"].Balance, ShouldEqual, 10430.564501815777)
+		So(mappedData["ETH"].Balance, ShouldEqual, 11060.564392615777)
 		So(mappedData["BTC"].Balance, ShouldEqual, 0)
 	})
 	Convey("getBalanceLisk() should get lisk balance", t, func() {
@@ -121,6 +121,6 @@ func TestScraper(t *testing.T) {
 	Convey("getBalanceNeo() should get neo balance", t, func() {
 		res, err := getBalanceNeo("NEO", "AaZiNiSmSHpZmUEK5PR7uXVSZWbFd5wfkb")
 		So(err, ShouldBeNil)
-		So(res["NEO"], ShouldEqual, 158)
+		So(res["NEO"], ShouldEqual, 0)
 	})
 }
